@@ -29,11 +29,12 @@ import appdaemon.appapi as appapi
 #       been turned on, it will not automatically turn off the fan when the humidity reaches rh_target because
 #       self.run_fan and self.switch_on are initialized to False.
 
+
 class HumidityFan(appapi.AppDaemon):
 
     def initialize(self):
         self.log("initialize()", level="DEBUG")
-        self.log("args: {0}".format(self.args))
+        self.log("args: {0}".format(self.args), level="DEBUG")
 
         self.handle = None
         self.run_fan = False
