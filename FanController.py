@@ -44,7 +44,6 @@ class HumidityFan(appapi.AppDaemon):
         self.rh_target = 50
         self.motion_sensor_timeout = 60
         self.use_backup_switch = False
-        # self.last_motion_inactive = datetime.datetime.now()
 
         if "humidity_sensor" in self.args and "exhaust_fan" in self.args:
             self.listen_state(self.humidity, self.args["humidity_sensor"])
@@ -93,7 +92,6 @@ class HumidityFan(appapi.AppDaemon):
                 self.turn_off(self.args["exhaust_fan"])
                 self.switch_on = False
         elif new == "off":
-            # self.last_motion_inactive = datetime.datetime.now()
             self.log("Wait {0} seconds for motion to stop...".format(self.motion_sensor_timeout), level="DEBUG")
             self.handle = self.run_in(self.check_motion, self.motion_sensor_timeout)
         else:
@@ -103,7 +101,6 @@ class HumidityFan(appapi.AppDaemon):
         self.log("check_motion()", level="DEBUG")
 
         if "motion_sensor" in self.args and self.get_state(self.args["motion_sensor"]) == "off":
-            # elapsed = (datetime.datetime.now() - self.last_motion_inactive).seconds
             entity = self.get_entity(self.args["motion_sensor"])
             last_changed = self.convert_utc(entity.last_changed)
             elapsed = (datetime.datetime.utcnow() - last_changed.replace(tzinfo=None)).seconds
