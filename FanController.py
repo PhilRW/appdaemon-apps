@@ -63,7 +63,7 @@ class HumidityFan(appapi.AppDaemon):
 
         if float(new) < self.rh_target and self.run_fan:
             self.log("RH back to normal, stop exhausting humid air.", level="DEBUG")
-            self.turn_on(self.args["exhaust_fan"])
+            self.turn_off(self.args["exhaust_fan"])
             self.run_fan = False
         elif float(new) > self.rh_max and not self.run_fan:
             self.log("RH too high, start exhausting humid air.", level="DEBUG")
