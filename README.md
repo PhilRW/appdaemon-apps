@@ -11,6 +11,8 @@ cd /config/appdaemon/apps/
 git clone git@github.com:PhilRW/appdaemon-apps.git philrw-apps
 ```
 
+[TOC]
+
 ------
 
 ## Humidity Fan Controller
@@ -99,3 +101,37 @@ lametric_sleep:
 
 - [ ] Needs to determine IP of local LaMetric on its own (SSDP discovery perhaps?)
 
+
+------
+
+## Monkey See, Monkey Do
+
+Simulating presence while away is an important security feature of any good home automation system. While it is possible to manually program all the events that need to take place while a home is unoccupied, it would be easier on the user for the home to watch and learn while the home _is_ occupied and to replay those events when it is *not*.
+
+This app does that. It watches the devices in the `entities` list for events and will replay them when you are away. Its memory is based on the day of the week and time of the event. It will fill in the gaps in its memory as it observes during "home" mode. Occupancy is determined by the `occupancy_state` parameter, which should be a binary_sensor that is on when occupied.
+
+For best results, run this app for at least a week of occupancy. When you are away, it will do what you (or the automation system) would have done had you been home on that day of the week.
+
+**NOTE**: If it did not observe you during that particular timeframe, it will not know what to do, so it will do nothing.
+
+### Sample config
+
+```yaml
+monkey_see_monkey_do:
+  module: ape
+  class: Monkey
+  occupancy_state: binary_sensor.occupancy
+  forget_event: MONKEY_FORGET
+  entities:
+    - light.bedroom_light
+    - light.living_room_light
+    - light.kitchen_light
+    - switch.basement_light
+```
+
+`forget_event` is optional and will wipe its memory (database file) when you fire that event.
+
+### Known issues
+
+- [ ] Needs some randomness to it
+- [ ] Should be more flexible than looking at a single `binary_sensor` to determine occupancy
