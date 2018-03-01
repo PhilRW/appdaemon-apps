@@ -237,10 +237,13 @@ class EnergyApp(appapi.AppDaemon):
         self.log("Sending updated data to LaMetric...", level="DEBUG")
         url = "https://developer.lametric.com/api/v1/dev/widget/update/com.lametric.{0}/1".format(self.app_id)
         headers = {"X-Access-Token": self.access_token}
-        result = requests.post(url, json.dumps(self.frames), headers=headers)
-        self.log("status_code: {0}, reason: {1}".format(result.status_code, result.reason), level="DEBUG")
+        try:
+            result = requests.post(url, json.dumps(self.frames), headers=headers)
+            self.log("status_code: {0}, reason: {1}".format(result.status_code, result.reason), level="DEBUG")
 
-        if result.status_code != 200:
-            self.log("Problem sending to LaMetric: status_code: {0}, reason: {1}".format(result.status_code, result.reason), level="ERROR")
+            if result.status_code != 200:
+                self.log("Problem sending to LaMetric: status_code: {0}, reason: {1}".format(result.status_code, result.reason), level="ERROR")
+        except requests.exceptions.ConnectionError as e:
+            self.log("Problem connecting to LaMetric: {0}".format(e), level="ERROR")
 
         self.handle = None
