@@ -27,10 +27,8 @@ class Monkey(appapi.AppDaemon):
         self.log("initialize()", level="INFO")
         self.log("args: {0}".format(self.args), level="INFO")
 
-        if "input_select" in self.args \
-                and "entities" in self.args \
-                and "see_mode" in self.args \
-                and "do_mode" in self.args:
+        if "occupancy_state" in self.args \
+                and "entities" in self.args:
 
             self.events = self.load(Monkey.EVENTS_DB)
             if self.events is None:
@@ -41,25 +39,25 @@ class Monkey(appapi.AppDaemon):
             self.observations = []
             self.do_handles = []
 
-            self.listen_state(self.decide, self.args["input_select"])
+            self.listen_state(self.decide, self.args["occupancy_state"])
             if "forget_event" in self.args:
                 self.listen_event(self.forget, self.args["forget_event"])
 
             for e in self.args["entities"]:
-                self.listen_state(self.monkey_see, e, constrain_input_select="{0},{1}".format(self.args["input_select"], self.args["see_mode"]))
+                self.listen_state(self.monkey_see, e, constrain_input_boolean=self.args["occupancy_state"])
         else:
             self.log("Missing required parameter(s). Cannot continue.", level="ERROR")
 
     def decide(self, entity, attribute, old, new, kwargs):
         self.log("decide({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level="INFO")
 
-        if new == self.args["see_mode"]:
+        if new == 'on':
             # cancel all scheduled "do" callbacks
             for h in self.do_handles:
                 self.cancel_timer(h)
             self.log("cancelled {0} monkey_do handle(s)".format(len(self.do_handles)), level="INFO")
             self.do_handles = []
-        elif new == self.args["do_mode"]:
+        elif new == 'off':
             # remember anything we may have seen
             self.remember()
 
@@ -70,7 +68,7 @@ class Monkey(appapi.AppDaemon):
             h = self.run_daily(self.schedule_today, when)
             self.do_handles.append(h)
         else:
-            self.log("{0} is {1}, nothing to see or do".format(self.args["input_select"], new))
+            self.log("{0} is {1}, nothing to see or do".format(self.args["occupancy_state"], new))
 
     def monkey_see(self, entity, attribute, old, new, kwargs):
         self.log("monkey_see({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level="INFO")
