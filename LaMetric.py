@@ -245,5 +245,6 @@ class EnergyApp(appapi.AppDaemon):
                 self.log("Problem sending to LaMetric: status_code: {0}, reason: {1}".format(result.status_code, result.reason), level="ERROR")
         except requests.exceptions.ConnectionError as e:
             self.log("Problem connecting to LaMetric: {0}".format(e), level="ERROR")
+            self.handle = self.run_in(self.update, 5)
 
         self.handle = None
