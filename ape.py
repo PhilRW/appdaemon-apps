@@ -110,8 +110,8 @@ class Monkey(appapi.AppDaemon):
         for i in range(0, 7):
             try:
                 self.log("Remembering events from {0}...".format(calendar.day_name[i]), level="INFO")
-                left = bisect.bisect_left([e.dt for e in self.events[i]], days[i][0].dt)
-                right = bisect.bisect_right([e.dt for e in self.events[i]], days[i][-1].dt)
+                left = bisect.bisect_left([e.dt.time() for e in self.events[i]], days[i][0].dt.time())
+                right = bisect.bisect_right([e.dt.time() for e in self.events[i]], days[i][-1].dt.time())
                 self.events[i] = self.events[i][:left] + days[i] + self.events[i][right:]
                 self.log("...new events for {0} = {1}".format(calendar.day_name[i], self.events[i]), level="INFO")
             except IndexError:
@@ -131,6 +131,7 @@ class Monkey(appapi.AppDaemon):
             if dt > datetime.datetime.now() + datetime.timedelta(seconds=5):
                 h = self.run_at(self.monkey_do, dt, evnt=e)
                 self.do_handles.append(h)
+                self.log("scheduled event for {0}: {1}".format(dt, e), level="INFO")
             else:
                 self.log("event occurs in past, skipping ({0})...".format(time), level="INFO")
 
