@@ -11,8 +11,6 @@ cd /config/appdaemon/apps/
 git clone git@github.com:PhilRW/appdaemon-apps.git philrw-apps
 ```
 
-[TOC]
-
 ------
 
 ## Humidity Fan Controller
@@ -135,3 +133,4 @@ monkey_see_monkey_do:
 
 - [ ] Needs some randomness to it
 - [ ] Should be more flexible than looking at a single `binary_sensor` to determine occupancy
+- [ ] What if your automations turn off lights for you when you depart? Will it pick those up?
