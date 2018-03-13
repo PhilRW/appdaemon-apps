@@ -195,6 +195,8 @@ class EnergyApp(appapi.AppDaemon):
             text = "off-peak"
             icon = "a11218"
 
+        self.log("TOU info is {0}".format(text), level="DEBUG")
+
         self.frame_tou = {
             "text": text,
             "icon": icon
