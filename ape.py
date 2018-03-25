@@ -21,7 +21,7 @@ class Event:
 
 
 class Monkey(hass.Hass):
-    EVENTS_DB = "Monkey_events"
+    EVENTS_DB = "/share/Monkey_events"
 
     def initialize(self):
         self.log("initialize()", level="INFO")
