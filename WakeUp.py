@@ -1,8 +1,9 @@
-import appdaemon.appapi as appapi
 import datetime
 
+import appdaemon.plugins.hass.hassapi as hass
 
-class WakeUp(appapi.AppDaemon):
+
+class WakeUp(hass.Hass):
 
     def initialize(self):
         self.log("initialize()", level="DEBUG")

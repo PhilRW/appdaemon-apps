@@ -1,12 +1,13 @@
+import base64
 import calendar
 import datetime
-import requests
-import base64
 import json
-import appdaemon.appapi as appapi
+
+import appdaemon.plugins.hass.hassapi as hass
+import requests
 
 
-class ScreensaverController(appapi.AppDaemon):
+class ScreensaverController(hass.Hass):
 
     def initialize(self):
         self.log("initialize()", level="DEBUG")
@@ -83,7 +84,7 @@ class Holiday(object):
             self.dt = datetime.datetime(self.year, self.month, day)
 
 
-class EnergyApp(appapi.AppDaemon):
+class EnergyApp(hass.Hass):
 
     def initialize(self):
         self.log("initialize()", level="DEBUG")

@@ -1,9 +1,9 @@
 import bisect
 import calendar
+import datetime
 import pickle
 
-import appdaemon.appapi as appapi
-import datetime
+import appdaemon.plugins.hass.hassapi as hass
 
 
 class Event:
@@ -20,7 +20,7 @@ class Event:
         return "<event({0}, {1}, {2})>".format(self.dt, self.entity, self.new)
 
 
-class Monkey(appapi.AppDaemon):
+class Monkey(hass.Hass):
     EVENTS_DB = "Monkey_events"
 
     def initialize(self):

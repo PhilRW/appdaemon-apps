@@ -1,7 +1,7 @@
 import datetime
 import functools
 
-import appdaemon.appapi as appapi
+import appdaemon.plugins.hass.hassapi as hass
 
 
 #
@@ -30,7 +30,7 @@ import appdaemon.appapi as appapi
 #       self.run_fan and self.switch_on are initialized to False.
 
 
-class HumidityFan(appapi.AppDaemon):
+class HumidityFan(hass.Hass):
 
     def initialize(self):
         self.log("initialize()", level="DEBUG")

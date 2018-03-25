@@ -1,7 +1,7 @@
-import appdaemon.appapi as appapi
+import appdaemon.plugins.hass.hassapi as hass
 
 
-class Allowance(appapi.AppDaemon):
+class Allowance(hass.Hass):
 
     def initialize(self):
         self.log("initialize()", level="DEBUG")
