@@ -54,7 +54,7 @@ class HumidityFan(hass.Hass):
             if "rh_max" in self.args:
                 self.rh_max = float(self.args["rh_max"])
             if "rh_target" in self.args:
-                self.rh_max = float(self.args["rh_target"])
+                self.rh_target = float(self.args["rh_target"])
         else:
             self.log("No humidity_sensor or exhaust_fan specified, doing nothing.", level="WARNING")
 
