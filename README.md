@@ -134,3 +134,19 @@ monkey_see_monkey_do:
 - [ ] Needs some randomness to it
 - [ ] Should be more flexible than looking at a single `binary_sensor` to determine occupancy
 - [ ] What if your automations turn off lights for you when you depart? Will it pick those up?
+
+## Energy Allowance
+
+This simple app turns off an entity after a certain amount of time. If not specified, the timeout defaults to 600 seconds.
+
+### Sample config
+
+```yaml
+energy_allowance_closet_light:
+  module: energy
+  class: Allowance
+  entity: switch.closet_light
+  timeout: 300
+```
+
+`timeout` is optional and is the number of seconds to allow the entity to stay on.
