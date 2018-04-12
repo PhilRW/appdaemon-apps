@@ -120,6 +120,7 @@ monkey_see_monkey_do:
   class: Monkey
   occupancy_state: binary_sensor.occupancy
   forget_event: MONKEY_FORGET
+  exit_delay: 300
   entities:
     - light.bedroom_light
     - light.living_room_light
@@ -129,11 +130,13 @@ monkey_see_monkey_do:
 
 `forget_event` is optional and will wipe its memory (database file) when you fire that event.
 
+`exit_delay` is optional and lets you tweak the delay from when the `occupancy_state` sensor turns to `off` and when the app starts replaying events. This is useful for automation events that trigger after you depart, such as turning off lights. The default value is 60 (seconds).
+
 ### Known issues
 
 - [ ] Needs some randomness to it
 - [ ] Should be more flexible than looking at a single `binary_sensor` to determine occupancy
-- [ ] What if your automations turn off lights for you when you depart? Will it pick those up?
+- [x] What if your automations turn off lights for you when you depart? Will it pick those up?
 
 ## Energy Allowance
 
