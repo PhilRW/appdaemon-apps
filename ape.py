@@ -99,7 +99,7 @@ class Monkey(hass.Hass):
             e = Event(datetime.datetime.now(), entity, new)
             self.observations.append(e)
 
-            self.log("...{0} observation(s)...".format(len(self.observations)), level="INFO")
+            self.log("...{0} observation(s)...".format(len(self.observations)), level="DEBUG")
             self.log("...{0}".format(self.observations), level="DEBUG")
 
     def monkey_do(self, kwargs):
