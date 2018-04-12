@@ -121,6 +121,7 @@ monkey_see_monkey_do:
   occupancy_state: binary_sensor.occupancy
   forget_event: MONKEY_FORGET
   exit_delay: 300
+  events_db: /share/ape
   entities:
     - light.bedroom_light
     - light.living_room_light
@@ -131,6 +132,8 @@ monkey_see_monkey_do:
 `forget_event` is optional and will wipe its memory (database file) when you fire that event.
 
 `exit_delay` is optional and lets you tweak the delay from when the `occupancy_state` sensor turns to `off` and when the app starts replaying events. This is useful for automation events that trigger after you depart, such as turning off lights. The default value is 60 (seconds).
+
+`events_db` is optional and lets you customize the events database file. This is necessary if you are running more than once instance of the app. The default value is `/share/Monkey_events`. The extension `.pkl` is added to the filename, so do not specify that in the value.
 
 ### Known issues
 
