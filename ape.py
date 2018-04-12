@@ -21,7 +21,6 @@ class Event:
 
 
 class Monkey(hass.Hass):
-    EVENTS_DB = "/share/Monkey_events"
 
     def initialize(self):
         self.log("initialize()", level="DEBUG")
@@ -30,7 +29,11 @@ class Monkey(hass.Hass):
         if "occupancy_state" in self.args \
                 and "entities" in self.args:
 
-            self.events = self.load(Monkey.EVENTS_DB)
+            self.events_db = "/share/Monkey_events"
+            if "events_db" in self.args:
+                self.events_db = self.args["events_db"]
+
+            self.events = self.load(self.events_db)
             if self.events is None:
                 self.log("No events pickle file found, starting from scratch.", level="WARNING")
                 self.forget(None, None, None)
@@ -139,7 +142,7 @@ class Monkey(hass.Hass):
             except IndexError:
                 self.log("...{0} has no events yet. Skipping.".format(calendar.day_name[i]), level="DEBUG")
 
-        self.save(self.events, Monkey.EVENTS_DB)
+        self.save(self.events, self.events_db)
         self.observations = []
 
     def schedule_today(self, kwargs):
@@ -171,7 +174,7 @@ class Monkey(hass.Hass):
         for i in range(0, 7):
             self.events[i] = []
 
-        self.save(self.events, Monkey.EVENTS_DB)
+        self.save(self.events, self.events_db)
 
     def save(self, obj, name):
         self.log(msg="save({0}, {1})".format(obj, name), level="DEBUG")
