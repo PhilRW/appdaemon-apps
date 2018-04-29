@@ -24,7 +24,7 @@ class Monkey(hass.Hass):
 
     def initialize(self):
         self.log("initialize()", level="DEBUG")
-        self.log("args: {0}".format(self.args), level="DEBUG")
+        self.log("args: {0}".format(self.args), level="INFO")
 
         if "occupancy_state" in self.args \
                 and "entities" in self.args:
@@ -37,7 +37,7 @@ class Monkey(hass.Hass):
             if self.events is None:
                 self.log("No events pickle file found, starting from scratch.", level="WARNING")
                 self.forget(None, None, None)
-            self.log("events: {0}".format(self.events), level="DEBUG")
+            self.log("{0} events loaded".format(self.len_d(self.events)), level="INFO")
 
             self.observations = []
             self.do_handles = []
@@ -50,12 +50,13 @@ class Monkey(hass.Hass):
             for e in self.args["entities"]:
                 self.listen_state(self.monkey_see, e)
 
-            os = self.get_state(self.args["occupancy_state"])
-            self.decide(None, None, None, os, None)
-
             self.exit_delay = 60
             if "exit_delay" in self.args:
                 self.exit_delay = int(self.args["exit_delay"])
+
+            os = self.get_state(self.args["occupancy_state"])
+            self.decide(None, None, None, os, None)
+
         else:
             self.log("Missing required parameter(s). Cannot continue.", level="ERROR")
 
@@ -98,11 +99,11 @@ class Monkey(hass.Hass):
         self.log("monkey_see({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level="DEBUG")
 
         if self.watching and new != old:
-            self.log("appending event to observations...", level="DEBUG")
+            self.log("appending event to observations...", level="INFO")
             e = Event(datetime.datetime.now(), entity, new)
             self.observations.append(e)
 
-            self.log("...{0} observation(s)...".format(len(self.observations)), level="DEBUG")
+            self.log("...{0} observation(s)...".format(len(self.observations)), level="INFO")
             self.log("...{0}".format(self.observations), level="DEBUG")
 
     def monkey_do(self, kwargs):
@@ -121,7 +122,8 @@ class Monkey(hass.Hass):
     def remember(self):
         self.log("remember()", level="DEBUG")
 
-        self.log("observations to remember: {0}".format(self.observations), level="DEBUG")
+        self.log("{0} observations to remember...".format(len(self.observations)), level="INFO")
+        self.log("...{0}".format(self.observations), level="DEBUG")
 
         days = {}
         for i in range(0, 7):
@@ -134,15 +136,16 @@ class Monkey(hass.Hass):
 
         for i in range(0, 7):
             try:
-                self.log("Remembering events from {0}...".format(calendar.day_name[i]), level="DEBUG")
+                self.log("Remembering events from {0}...".format(calendar.day_name[i]), level="INFO")
                 left = bisect.bisect_left([e.dt.time() for e in self.events[i]], days[i][0].dt.time())
                 right = bisect.bisect_right([e.dt.time() for e in self.events[i]], days[i][-1].dt.time())
                 self.events[i] = self.events[i][:left] + days[i] + self.events[i][right:]
-                self.log("...new events for {0} = {1}".format(calendar.day_name[i], self.events[i]), level="DEBUG")
+                self.log("...{0} events for {1} now...".format(len(self.events), calendar.day_name[i]), level="INFO")
+                self.log("...{0}".format(self.events[i]), level="DEBUG")
             except IndexError:
-                self.log("...{0} has no events yet. Skipping.".format(calendar.day_name[i]), level="DEBUG")
+                self.log("...{0} has no events yet. Skipping.".format(calendar.day_name[i]), level="INFO")
 
-        self.save(self.events, self.events_db)
+        self.save()
         self.observations = []
 
     def schedule_today(self, kwargs):
@@ -159,11 +162,11 @@ class Monkey(hass.Hass):
             if dt > datetime.datetime.now() + datetime.timedelta(seconds=5):
                 h = self.run_at(self.monkey_do, dt, evnt=e)
                 self.do_handles.append(h)
-                self.log("scheduled event for {0}: {1}".format(dt, e), level="DEBUG")
+                self.log("scheduled event for {0}: {1}".format(dt, e), level="INFO")
                 scheduled_events += 1
             else:
                 skipped_events += 1
-                self.log("event occurs in past, skipping ({0})...".format(time), level="DEBUG")
+                self.log("event occurs in past, skipping ({0})...".format(time), level="INFO")
 
         self.log("{0} events for today, {1} scheduled, {2} skipped".format(len(self.events[today.weekday()]), scheduled_events, skipped_events), level="INFO")
 
@@ -174,14 +177,14 @@ class Monkey(hass.Hass):
         for i in range(0, 7):
             self.events[i] = []
 
-        self.save(self.events, self.events_db)
+        self.save()
 
-    def save(self, obj, name):
-        self.log(msg="save({0}, {1})".format(obj, name), level="DEBUG")
+    def save(self):
+        self.log(msg="save()", level="DEBUG")
 
-        self.log("saving observations", level="INFO")
-        with open(name + '.pkl', 'wb') as f:
-            pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+        self.log("saving {0} observations".format(self.len_d(self.events)), level="INFO")
+        with open(self.events_db + '.pkl', 'wb') as f:
+            pickle.dump(self.events, f, pickle.HIGHEST_PROTOCOL)
 
     def load(self, name):
         self.log(msg="load({0})".format(name), level="DEBUG")
@@ -192,3 +195,12 @@ class Monkey(hass.Hass):
                 return pickle.load(f)
         except FileNotFoundError:
             return None
+
+    @staticmethod
+    def len_d(d):
+        return sum([len(d[k]) for k in d.keys()])
+
+    def terminate(self):
+        self.log("terminate()", level="DEBUG")
+
+        self.remember()
