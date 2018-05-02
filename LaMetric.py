@@ -93,7 +93,7 @@ class EnergyApp(hass.Hass):
         self.min_power = 0
         self.max_power = 0
         self.energy_offset = 0
-        self.chart_readings = [0] * 37
+        self.chart_readings = []
         self.chart_refresh = 2335
         self.handle = None
 
@@ -169,7 +169,8 @@ class EnergyApp(hass.Hass):
 
         cur_power = float(self.get_state(self.args["power_meter"]))
 
-        self.chart_readings.pop(0)
+        while len(self.chart_readings) > 36:
+            self.chart_readings.pop(0)
         self.chart_readings.append(cur_power)
 
         points = []
