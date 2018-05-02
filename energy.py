@@ -21,9 +21,10 @@ class Allowance(hass.Hass):
 
         if new != old:
             if new == "on":
+                self.log("Scheduling timer for {0} seconds".format(self.timeout), level="INFO")
                 self.handle = self.run_in(self.delayed_action, self.timeout)
             elif new == "off":
-                self.log("Cancelling timer {0}".format(self.handle), level="DEBUG")
+                self.log("Cancelling timer {0}".format(self.handle), level="INFO")
                 self.cancel_timer(self.handle)
 
     def delayed_action(self, kwargs):
