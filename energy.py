@@ -8,6 +8,7 @@ class Allowance(hass.Hass):
         self.log("args: {0}".format(self.args), level="DEBUG")
 
         self.timeout = 600
+        self.handle = None
 
         if "entity" in self.args:
             self.listen_state(self.allowance, self.args["entity"], timeout=self.args["timeout"])
