@@ -48,6 +48,7 @@ class StateManagerXcelColorado(hass.Hass):
         self.log("args: {0}".format(self.args), level="INFO")
 
         self.device = None
+        self.state = None
 
         if "device" in self.args:
             self.device = self.args["device"]
@@ -88,7 +89,9 @@ class StateManagerXcelColorado(hass.Hass):
 
         attributes = {"lametric_icon": lametric_icon}
 
-        self.log("{0} is now {1}...".format(self.device, tou_mode), level="INFO")
-        self.log("...with attributes: {0}".format(attributes), level="DEBUG")
+        if tou_mode != self.state:
+            self.log("{0} is now {1}...".format(self.device, tou_mode), level="INFO")
+            self.log("...with attributes: {0}".format(attributes), level="DEBUG")
 
-        self.set_state(self.device, state=tou_mode, attributes=attributes)
+            self.state = tou_mode
+            self.set_state(self.device, state=tou_mode, attributes=attributes)
