@@ -1,5 +1,4 @@
 import base64
-import calendar
 import datetime
 import json
 
@@ -47,43 +46,6 @@ class ScreensaverController(hass.Hass):
             self.log("Trouble sending command to LaMetric: {0} {1}".format(response.status_code, response.status_code), level="ERROR")
 
 
-class Holiday(object):
-    def __init__(self, name, month, dow=None, wom=None, day=None):
-        '''
-
-        :param name: the name of the holiday
-        :param month: month of the holiday (1 = January)
-        :param dow: day of the week of the holiday (0-indexed, starting with Monday)
-        :param wom: week of the month of the holiday (0-indexed, use -1 for last)
-        :param day: day of the month (of dow and wom are not used)
-        '''
-        self.name = name
-        self.month = month
-        self.dow = dow
-        self.wom = wom
-        self.day = day
-        self.dt = None
-        self.year = datetime.datetime.now().year
-        self.__parse_holiday()
-
-    def __parse_holiday(self):
-        if self.day is not None:
-            self.dt = datetime.datetime(self.year, self.month, self.day)
-            if self.dt.weekday() == 5:
-                self.dt = self.dt - datetime.timedelta(days=1)
-            elif self.dt.weekday() == 6:
-                self.dt = self.dt + datetime.timedelta(days=1)
-        elif self.dow is not None \
-                and self.wom is not None:
-            month_cal = calendar.monthcalendar(self.year, self.month)
-            found_weeks = []
-            for week in month_cal:
-                if week[self.dow] != 0:
-                    found_weeks.append(week)
-            day = (found_weeks[self.wom][self.dow])
-            self.dt = datetime.datetime(self.year, self.month, day)
-
-
 class EnergyApp(hass.Hass):
 
     def initialize(self):
@@ -102,9 +64,9 @@ class EnergyApp(hass.Hass):
         self.frame_chart = None
         self.frame_tou = None
 
-        if "power_meter" in self.args \
-                and "energy_meter" in self.args \
-                and "lametric_app_id" in self.args \
+        if "power_meter" \
+                and "energy_meter" \
+                and "lametric_app_id" \
                 and "lametric_access_token" in self.args:
             self.listen_state(self.power, self.args["power_meter"])
             self.listen_state(self.energy, self.args["energy_meter"])
@@ -118,6 +80,9 @@ class EnergyApp(hass.Hass):
 
         if "chart_refresh" in self.args:
             self.chart_refresh = int(self.args["chart_refresh"])
+
+        if "tou_mode" in self.args:
+            self.listen_state(self.tou, self.args["tou_mode"])
 
         # update the chart data
         self.run_every(self.chart, datetime.datetime.now(), self.chart_refresh)
@@ -181,28 +146,18 @@ class EnergyApp(hass.Hass):
             "chartData": points
         }
 
-    def tou(self):
-        self.log("tou()", level="DEBUG")
+    def tou(self, entity, attribute, old, new, kwargs):
+        self.log("tou({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level="DEBUG")
 
-        now = datetime.datetime.now()
-        if 18 > now.hour >= 14 \
-                and now.weekday() not in [5, 6] \
-                and not self.is_holiday(now):
-            text = "on-peak"
-            icon = "a11217"
-        elif 21 > now.hour >= 9:
-            text = "shoulder"
-            icon = "a11219"
-        else:
-            text = "off-peak"
-            icon = "a11218"
+        if new != old:
+            text = new
+            icon = self.get_state(self.args["tou_mode"], attribute="lametric_icon")
+            self.log("TOU info is {0}".format(text), level="DEBUG")
 
-        self.log("TOU info is {0}".format(text), level="DEBUG")
-
-        self.frame_tou = {
-            "text": text,
-            "icon": icon
-        }
+            self.frame_tou = {
+                "text": text,
+                "icon": icon
+            }
 
     def build_frames(self):
         self.log("build_frames()", level="DEBUG")
@@ -218,24 +173,9 @@ class EnergyApp(hass.Hass):
         }
         self.log("frames: {0}".format(frames), level="DEBUG")
 
-    def is_holiday(self, dt):
-        self.log("is_holiday({0})".format(dt), level="DEBUG")
-
-        tou_holidays = [
-            Holiday("New Year's Day", 1, day=1),
-            Holiday("Memorial Day", 5, dow=0, wom=-1),
-            Holiday("Independence Day", 7, day=4),
-            Holiday("Labor Day", 9, dow=0, wom=0),
-            Holiday("Thanksgiving Day", 11, dow=3, wom=3),
-            Holiday("Christmas Day", 12, day=25)
-        ]
-
-        return dt.date() in [h.dt.date() for h in tou_holidays]
-
     def update(self, kwargs):
         self.log("update()", level="DEBUG")
 
-        self.tou()
         self.build_frames()
 
         self.log("Sending updated data to LaMetric...", level="DEBUG")

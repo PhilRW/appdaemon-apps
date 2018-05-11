@@ -69,9 +69,13 @@ superior_lametric_hem:
   power_meter: sensor.whole_house_power
   energy_meter: sensor.whole_house_energy
   energy_offset: 1234.567
+  dependencies: tou_mode_manager
+  tou_mode: input_select.tou_mode
 ```
 
 `energy_offset` will add that value to the meter's energy (kWh) reading. This is in case you reset the meter on the device, inadvertently or otherwise, and would like to restore your previous reading.
+
+`dependencies` and `tou_mode` are optional and depend on the separate `tou` module.
 
 ### Known issues
 
@@ -98,7 +102,6 @@ lametric_sleep:
 ### Known issues
 
 - [ ] Needs to determine IP of local LaMetric on its own (SSDP discovery perhaps?)
-
 
 ------
 
@@ -156,3 +159,18 @@ energy_allowance_closet_light:
 ```
 
 `timeout` is optional and is the number of seconds to allow the entity to stay on.
+
+## Time Of Use (TOU)
+
+This app sets the state of an arbitrary entity according to the current TOU rate. Currently it is set up for Xcel Energy in Colorado.
+
+You can use the `device` in other apps or automations. The states are "on-peak", "shoulder", and "off-peak". There is also an attribute called "lametric_icon" that is a red, yellow, or green icon for the respective TOU states.
+
+### Sample config
+
+```yaml
+tou_mode_manager:
+  module: tou
+  class: StateManagerXcelColorado
+  device: input_select.tou_mode
+```
