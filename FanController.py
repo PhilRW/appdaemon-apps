@@ -61,7 +61,7 @@ class HumidityFan(hass.Hass):
     def humidity(self, entity, attribute, old, new, kwargs):
         self.log("humidity({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level="DEBUG")
 
-        if float(new) < self.rh_target and self.run_fan:
+        if float(new) <= self.rh_target and self.run_fan:
             self.log("RH back to normal, stop exhausting humid air.", level="DEBUG")
             self.turn_off(self.args["exhaust_fan"])
             self.run_fan = False
