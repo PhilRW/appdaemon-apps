@@ -47,10 +47,11 @@ class ScreensaverController(hass.Hass):
 
 
 class EnergyApp(hass.Hass):
+    DEBUG_LEVEL = "DEBUG"
 
     def initialize(self):
-        self.log("initialize()", level="DEBUG")
-        self.log("args: {0}".format(self.args), level="DEBUG")
+        self.log("initialize()", level=EnergyApp.DEBUG_LEVEL)
+        self.log("args: {0}".format(self.args), level=EnergyApp.DEBUG_LEVEL)
 
         self.min_power = 0
         self.max_power = 0
@@ -64,35 +65,33 @@ class EnergyApp(hass.Hass):
         self.frame_chart = None
         self.frame_tou = None
 
-        if "power_meter" \
-                and "energy_meter" \
-                and "lametric_app_id" \
-                and "lametric_access_token" in self.args:
-            self.listen_state(self.power, self.args["power_meter"])
-            self.listen_state(self.energy, self.args["energy_meter"])
+        if "lametric_app_id" and "lametric_access_token" in self.args:
+            if "power_meter" in self.args:
+                self.listen_state(self.power, self.args["power_meter"])
+                if "chart_refresh" in self.args:
+                    self.chart_refresh = int(self.args["chart_refresh"])
+                # update the chart data
+                self.run_every(self.chart, datetime.datetime.now(), self.chart_refresh)
+            if "energy_meter" in self.args:
+                self.listen_state(self.energy, self.args["energy_meter"])
+                if "energy_offset" in self.args:
+                    self.energy_offset = float(self.args["energy_offset"])
             self.app_id = self.args["lametric_app_id"]
             self.access_token = self.args["lametric_access_token"]
         else:
             self.log("Required parameter(s) missing, doing nothing.", level="WARNING")
 
-        if "energy_offset" in self.args:
-            self.energy_offset = float(self.args["energy_offset"])
-
-        if "chart_refresh" in self.args:
-            self.chart_refresh = int(self.args["chart_refresh"])
-
         if "tou_mode" in self.args:
             self.listen_state(self.tou, self.args["tou_mode"])
-
-        # update the chart data
-        self.run_every(self.chart, datetime.datetime.now(), self.chart_refresh)
 
         # update the display hourly on the 0-minute at a minimum (for TOU)
         # time() object defaults to time(0, 0)
         self.run_hourly(self.update, datetime.time())
 
+        self.tou(None, None, None, self.get_state(self.args["tou_mode"]), None)
+
     def power(self, entity, attribute, old, new, kwargs):
-        self.log("power({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level="DEBUG")
+        self.log("power({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=EnergyApp.DEBUG_LEVEL)
 
         w = float(new)
 
@@ -115,13 +114,13 @@ class EnergyApp(hass.Hass):
         }
 
         if self.handle is not None:
-            self.log("cancelling timer", level="DEBUG")
+            self.log("cancelling timer", level=EnergyApp.DEBUG_LEVEL)
             self.cancel_timer(self.handle)
             self.handle = None
         self.handle = self.run_in(self.update, 3)
 
     def energy(self, entity, attribute, old, new, kwargs):
-        self.log("energy({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level="DEBUG")
+        self.log("energy({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=EnergyApp.DEBUG_LEVEL)
 
         kWh = float(new) + self.energy_offset
 
@@ -130,7 +129,7 @@ class EnergyApp(hass.Hass):
         }
 
     def chart(self, kwargs):
-        self.log("update_chart({0})".format(kwargs), level="DEBUG")
+        self.log("update_chart({0})".format(kwargs), level=EnergyApp.DEBUG_LEVEL)
 
         cur_power = float(self.get_state(self.args["power_meter"]))
 
@@ -147,12 +146,12 @@ class EnergyApp(hass.Hass):
         }
 
     def tou(self, entity, attribute, old, new, kwargs):
-        self.log("tou({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level="DEBUG")
+        self.log("tou({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=EnergyApp.DEBUG_LEVEL)
 
         if new != old:
             text = new
             icon = self.get_state(self.args["tou_mode"], attribute="lametric_icon")
-            self.log("TOU info is {0}".format(text), level="DEBUG")
+            self.log("TOU info is {0}".format(text), level=EnergyApp.DEBUG_LEVEL)
 
             self.frame_tou = {
                 "text": text,
@@ -160,7 +159,7 @@ class EnergyApp(hass.Hass):
             }
 
     def build_frames(self):
-        self.log("build_frames()", level="DEBUG")
+        self.log("build_frames()", level=EnergyApp.DEBUG_LEVEL)
 
         frames = []
         if self.frame_power: frames.append(self.frame_power)
@@ -171,19 +170,19 @@ class EnergyApp(hass.Hass):
         self.frames = {
             "frames": frames
         }
-        self.log("frames: {0}".format(frames), level="DEBUG")
+        self.log("frames: {0}".format(frames), level=EnergyApp.DEBUG_LEVEL)
 
     def update(self, kwargs):
-        self.log("update()", level="DEBUG")
+        self.log("update()", level=EnergyApp.DEBUG_LEVEL)
 
         self.build_frames()
 
-        self.log("Sending updated data to LaMetric...", level="DEBUG")
+        self.log("Sending updated data to LaMetric...", level=EnergyApp.DEBUG_LEVEL)
         url = "https://developer.lametric.com/api/v1/dev/widget/update/com.lametric.{0}/1".format(self.app_id)
         headers = {"X-Access-Token": self.access_token}
         try:
             result = requests.post(url, json.dumps(self.frames), headers=headers)
-            self.log("status_code: {0}, reason: {1}".format(result.status_code, result.reason), level="DEBUG")
+            self.log("status_code: {0}, reason: {1}".format(result.status_code, result.reason), level=EnergyApp.DEBUG_LEVEL)
 
             if result.status_code != 200:
                 self.log("Problem sending to LaMetric: status_code: {0}, reason: {1}".format(result.status_code, result.reason), level="ERROR")
