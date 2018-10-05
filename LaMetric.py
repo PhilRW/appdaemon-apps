@@ -191,3 +191,80 @@ class EnergyApp(hass.Hass):
             self.handle = self.run_in(self.update, 5)
 
         self.handle = None
+
+
+class TaskApp(hass.Hass):
+    DEBUG_LEVEL = "INFO"
+
+    def initialize(self):
+        self.log("initialize()", level=TaskApp.DEBUG_LEVEL)
+        self.log("args: {0}".format(self.args), level=TaskApp.DEBUG_LEVEL)
+
+        if "lametric_app_id" \
+                and "lametric_access_token" \
+                and "calendar" in self.args:
+            self.app_id = self.args["lametric_app_id"]
+            self.access_token = self.args["lametric_access_token"]
+        else:
+            self.log("Required parameter(s) missing, doing nothing.", level="WARNING")
+
+        self.listen_state(self.update, self.args["calendar"])
+
+    def build_frames(self):
+        self.log("build_frames()", level=TaskApp.DEBUG_LEVEL)
+
+        tasks = self.get_state(self.args["calendar"], attribute="all_tasks")
+        self.log("tasks: {0}".format(tasks), level=TaskApp.DEBUG_LEVEL)
+
+        i = 0
+
+        frames = [{
+            "text": "no todo",
+            "icon": "a87",
+            "index": i
+        }]
+
+        if tasks and len(tasks) > 0:
+            frames = [{
+                "text": "Todo:",
+                "icon": "a6601",
+                "index": i
+            }]
+
+            for task in tasks:
+                i += 1
+                frames.append({
+                    "text": task,
+                    "index": i
+                })
+
+        self.frames = {
+            "frames": frames
+        }
+
+        self.log("frames: {0}".format(frames), level=TaskApp.DEBUG_LEVEL)
+
+    def update(self, entity, attribute, old, new, kwargs):
+        self.log("update({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=TaskApp.DEBUG_LEVEL)
+
+        self.build_frames()
+
+        self.log("Sending updated data to LaMetric...", level=TaskApp.DEBUG_LEVEL)
+
+        host = "developer.lametric.com"
+        if "device_ip" in self.args:
+            host = "{0}:4343".format(self.args["device_ip"])
+
+        url = "https://{0}/api/v1/dev/widget/update/com.lametric.{1}/1".format(host, self.app_id)
+        headers = {"X-Access-Token": self.access_token}
+        try:
+            result = requests.post(url, json.dumps(self.frames), headers=headers, verify=("device_ip" not in self.args))
+            self.log("status_code: {0}, reason: {1}".format(result.status_code, result.reason), level=TaskApp.DEBUG_LEVEL)
+
+            if result.status_code != 200:
+                self.log("Problem sending to LaMetric: status_code: {0}, reason: {1}".format(result.status_code, result.reason), level="ERROR")
+        except requests.exceptions.ConnectionError as e:
+            self.log("Problem connecting to LaMetric: {0}".format(e), level="ERROR")
+            self.handle = self.run_in(self.update, 55)
+
+        self.handle = None
