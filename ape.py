@@ -22,7 +22,7 @@ class Event:
 
 class Monkey(hass.Hass):
 
-    DEBUG_LEVEL="INFO"
+    DEBUG_LEVEL="DEBUG"
 
     def initialize(self):
         self.log("initialize()", level=Monkey.DEBUG_LEVEL)
