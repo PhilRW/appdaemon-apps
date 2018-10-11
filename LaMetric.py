@@ -158,6 +158,8 @@ class EnergyApp(hass.Hass):
                 "icon": icon
             }
 
+            self.handle = self.run_in(self.update, 5)
+
     def build_frames(self):
         self.log("build_frames()", level=EnergyApp.DEBUG_LEVEL)
 
