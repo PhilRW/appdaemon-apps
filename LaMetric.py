@@ -3,6 +3,7 @@ import datetime
 import json
 
 import appdaemon.plugins.hass.hassapi as hass
+import pytz
 import requests
 
 
@@ -204,18 +205,47 @@ class TaskApp(hass.Hass):
 
         if "lametric_app_id" \
                 and "lametric_access_token" \
-                and "calendar" in self.args:
+                and "todoist_project_id" \
+                and "todoist_token" in self.args:
             self.app_id = self.args["lametric_app_id"]
-            self.access_token = self.args["lametric_access_token"]
+            self.lametric_token = self.args["lametric_access_token"]
+            self.project_id = self.args["todoist_project_id"]
+            self.todoist_token = self.args["todoist_token"]
         else:
             self.log("Required parameter(s) missing, doing nothing.", level="WARNING")
 
-        self.listen_state(self.update, self.args["calendar"])
+        self.run_hourly(self.update, datetime.time())
+
+    def get_tasks(self):
+        self.log("get_tasks()", level=TaskApp.DEBUG_LEVEL)
+
+        tasks = []
+
+        tz = pytz.timezone(self.get_hass_config()["time_zone"])
+        r = requests.get(
+            "https://beta.todoist.com/API/v8/tasks",
+            params={
+                "project_id": self.project_id
+            },
+            headers={
+                "Authorization": "Bearer %s" % self.todoist_token
+            }).json()
+
+        for task in r:
+            try:
+                dt = self.convert_utc(task['due']['datetime'])
+            except:
+                dt = datetime.datetime.strptime(task['due']['date'], "%Y-%m-%d").astimezone(tz)
+
+            if dt < datetime.datetime.now(tz):
+                tasks.append(task['content'])
+
+        return tasks
 
     def build_frames(self):
         self.log("build_frames()", level=TaskApp.DEBUG_LEVEL)
 
-        tasks = self.get_state(self.args["calendar"], attribute="all_tasks")
+        tasks = self.get_tasks()
         self.log("tasks: {0}".format(tasks), level=TaskApp.DEBUG_LEVEL)
 
         i = 0
@@ -226,7 +256,7 @@ class TaskApp(hass.Hass):
             "index": i
         }]
 
-        if tasks and len(tasks) > 0:
+        if len(tasks) > 0:
             frames = [{
                 "text": "Todo:",
                 "icon": "a6601",
@@ -258,7 +288,7 @@ class TaskApp(hass.Hass):
             host = "{0}:4343".format(self.args["device_ip"])
 
         url = "https://{0}/api/v1/dev/widget/update/com.lametric.{1}/1".format(host, self.app_id)
-        headers = {"X-Access-Token": self.access_token}
+        headers = {"X-Access-Token": self.lametric_token}
         try:
             result = requests.post(url, json.dumps(self.frames), headers=headers, verify=("device_ip" not in self.args))
             self.log("status_code: {0}, reason: {1}".format(result.status_code, result.reason), level=TaskApp.DEBUG_LEVEL)

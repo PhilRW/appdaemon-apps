@@ -10,8 +10,9 @@ lametric_tasks:
   class: TaskApp
   lametric_app_id: [redacted]
   lametric_access_token: [redacted]
+  todoist_project_id: [redacted]
+  todoist_token: [redacted]
   device_ip: 192.168.1.100
-  calendar: calendar.household_due_today
 ```
 
 `device_ip` is optional and will use the local IP of the device to push updates. If omitted it will use the lametric developer server.
