@@ -276,8 +276,8 @@ class TaskApp(hass.Hass):
 
         self.log("frames: {0}".format(frames), level=TaskApp.DEBUG_LEVEL)
 
-    def update(self, entity, attribute, old, new, kwargs):
-        self.log("update({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=TaskApp.DEBUG_LEVEL)
+    def update(self, kwargs):
+        self.log("update({0})".format(kwargs), level=TaskApp.DEBUG_LEVEL)
 
         self.build_frames()
 
