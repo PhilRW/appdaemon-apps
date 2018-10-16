@@ -232,13 +232,16 @@ class TaskApp(hass.Hass):
             }).json()
 
         for task in r:
-            try:
-                dt = self.convert_utc(task['due']['datetime'])
-            except:
-                dt = datetime.datetime.strptime(task['due']['date'], "%Y-%m-%d").astimezone(tz)
+            self.log("task found: {0}".format(task), level=TaskApp.DEBUG_LEVEL)
+            if 'due' in task:
+                try:
+                    dt = self.convert_utc(task['due']['datetime'])
+                except:
+                    dt = datetime.datetime.strptime(task['due']['date'], "%Y-%m-%d").astimezone(tz)
 
-            if dt < datetime.datetime.now(tz):
-                tasks.append(task['content'])
+                if dt < datetime.datetime.now(tz):
+                    self.log("adding task to task list: {0}".format(task['content']), level=TaskApp.DEBUG_LEVEL)
+                    tasks.append(task['content'])
 
         return tasks
 
