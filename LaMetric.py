@@ -220,8 +220,11 @@ class TaskApp(hass.Hass):
         self.log("get_tasks()", level=TaskApp.DEBUG_LEVEL)
 
         tasks = []
-
-        tz = pytz.timezone(self.get_hass_config()["time_zone"])
+        try:
+            tz = pytz.timezone(self.get_plugin_config()["time_zone"])
+        except Exception as e:
+            self.log(e, level="ERROR")
+            raise e
         r = requests.get(
             "https://beta.todoist.com/API/v8/tasks",
             params={
