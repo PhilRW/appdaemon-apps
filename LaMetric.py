@@ -215,6 +215,7 @@ class TaskApp(hass.Hass):
             self.log("Required parameter(s) missing, doing nothing.", level="WARNING")
 
         self.run_hourly(self.update, datetime.time())
+        self.update(None)
 
     def get_tasks(self):
         self.log("get_tasks()", level=TaskApp.DEBUG_LEVEL)
@@ -241,6 +242,9 @@ class TaskApp(hass.Hass):
                     dt = self.convert_utc(task['due']['datetime'])
                 except:
                     dt = datetime.datetime.strptime(task['due']['date'], "%Y-%m-%d").astimezone(tz)
+                    dt += datetime.timedelta(days=1)
+
+                self.log("dt = {0}".format(dt), level=TaskApp.DEBUG_LEVEL)
 
                 if dt < datetime.datetime.now(tz):
                     self.log("adding task to task list: {0}".format(task['content']), level=TaskApp.DEBUG_LEVEL)
