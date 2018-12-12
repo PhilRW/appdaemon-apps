@@ -76,7 +76,7 @@ And here's an example Lovelace frontend configuration:
         id: locks-user-1
         cards:
           - type: entities
-            id: locks-user-entities-1
+            id: locks-user-1-entities
             title: User 1
             show_header_toggle: false
             entities:
@@ -108,7 +108,7 @@ And here's an example Lovelace frontend configuration:
                 - input_datetime.lock_user_start_dt_1_front
                 - input_datetime.lock_user_stop_dt_1_front
           - type: conditional
-            id: locks-user-1-front-recurring
+            id: locks-user-1-front-manual
             conditions:
               - entity: input_select.lock_user_access_schedule_1_front
                 state: "Manual"
