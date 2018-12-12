@@ -19,49 +19,13 @@ lock_manager:
 
 The app will warn you if it cannot find the required entities and will attempt to automatically create them in the `packages_dir` directory (which should be writable by AppDaemon).
 
-## Sample package config
+## Sample configuration.yaml config
 
-Here's an example YAML file from the packages directory (copy and modify for each additional user code):
+It's also important to set the packages directory to the same as configured for the app.
 
 ```yaml
-input_text:
-  lock_user_name_1:
-    name: Name
-  lock_user_pin_1:
-    name: Code
-    pattern: '^[0-9]{4,8}$'
-    mode: password
-
-input_select:
-  lock_user_access_schedule_1_front:
-    name: Front Door Access Schedule
-    options:
-      - Always
-      - Recurring
-      - Temporary
-      - One-Time
-      - Never
-      - Manual
-
-input_datetime:
-  lock_user_start_dt_1_front:
-    name: Front Door Start Date/Time
-    has_date: true
-    has_time: true
-  lock_user_stop_dt_1_front:
-    name: Front Door End Date/Time
-    has_date: true
-    has_time: true
-  lock_user_start_time_1_front:
-    name: Front Door Start Time
-    has_time: true
-  lock_user_stop_time_1_front:
-    name: Front Door End Time
-    has_time: true
-
-input_boolean:
-  lock_user_access_1_front:
-    name: Front Door Access
+homeassistant:
+  packages: !include_dir_named /share/config/packages
 ```
 
 ## Sample ui-lovelace.yaml config
