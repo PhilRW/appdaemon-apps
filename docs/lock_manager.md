@@ -8,6 +8,7 @@ This app manages lock codes behind the scenes. You will also need to add the var
 lock_manager:
   module: lock
   class: Manager
+  packages_dir: /share/config/packages
   codes: 4
   locks:
     - identifier: front
@@ -16,7 +17,7 @@ lock_manager:
       alarm_type: sensor.front_door_lock_alarm_type
 ```
 
-The app will warn you if it cannot find the required entities.
+The app will warn you if it cannot find the required entities and will attempt to automatically create them in the `packages_dir` directory (which should be writable by AppDaemon).
 
 ## Sample package config
 

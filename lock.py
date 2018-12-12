@@ -1,4 +1,5 @@
 import datetime
+import os
 import random
 import re
 
@@ -7,10 +8,9 @@ import appdaemon.plugins.hass.hassapi as hass
 
 class EntityType:
 
-    def __init__(self, name, typ, **kwargs):
+    def __init__(self, name, typ):
         self.name = name
         self.typ = typ
-        self.kwargs = kwargs
 
 
 class Lock:
@@ -29,23 +29,16 @@ class Lock:
         return int(self.parent.get_state(self.lock, attribute="node_id"))
 
 
+ENTITY_PREFIX = "lock_user"
+
 PIN = EntityType("pin", "input_text")
-"""PIN code to send to lock"""
 NAME = EntityType("name", "input_text")
-"""Name of user"""
-SCHEDULE = EntityType("access_schedule", "input_select",
-                      attributes={"options": ["Always", "Recurring", "Temporary", "Disabled", "Manual"], "friendly_name": "Access sked"})
-"""Input select for determining run mode"""
-START_DT = EntityType("start_dt", "input_datetime", attributes={"has_date": "true", "has_time": "true"})
-"""date and time to start temporary access"""
-STOP_DT = EntityType("stop_dt", "input_datetime", attributes={"has_date": "true", "has_time": "true"})
-"""date and time to stop temporary access"""
-START_TIME = EntityType("start_time", "input_datetime", attributes={"has_time": "true"})
-"""time to start recurring access"""
-STOP_TIME = EntityType("stop_time", "input_datetime", attributes={"has_time": "true"})
-"""time to stop recurring access"""
+SCHEDULE = EntityType("access_schedule", "input_select")
+START_DT = EntityType("start_dt", "input_datetime")
+STOP_DT = EntityType("stop_dt", "input_datetime")
+START_TIME = EntityType("start_time", "input_datetime")
+STOP_TIME = EntityType("stop_time", "input_datetime")
 ACCESS = EntityType("access", "input_boolean")
-"""switch to control access of individual PIN"""
 
 SCHEDULE_ALWAYS = "Always"
 SCHEDULE_RECURRING = "Recurring"
@@ -56,11 +49,15 @@ SCHEDULE_MANUAL = "Manual"
 
 
 class Manager(hass.Hass):
-    DEBUG_LEVEL = "DEBUG"
+    DEBUG_LEVEL = "INFO"
 
     def initialize(self):
         self.log("initialize()", level=Manager.DEBUG_LEVEL)
         self.log("args: {0}".format(self.args), level="INFO")
+
+        if "packages_dir" and "codes" and "locks" not in self.args:
+            self.log("Incorrect configuration.", level="WARNING")
+            raise ValueError("Incorrect configuration.")
 
         self.codes = int(self.args['codes'])
         self.users = []
@@ -98,7 +95,8 @@ class Manager(hass.Hass):
                     self.listen_state(self.clear_code, self.get_entity(ACCESS, i + 1, l), new="off", code_id=i + 1, lock=l)
                     self.listen_state(self.access_schedule_listener, self.get_entity(SCHEDULE, i + 1, l), code_id=i + 1, lock=l)
         else:
-            self.log("Problem processing configuration, application halted", level="WARNING")
+            self.log("Problem processing configuration, application halted.", level="WARNING")
+            self.generate_config()
 
     def set_access(self, kwargs):
         self.log("set_access({0})".format(kwargs), level=Manager.DEBUG_LEVEL)
@@ -147,9 +145,9 @@ class Manager(hass.Hass):
         self.log("get_entity({0}, {1}, {2})".format(entity, code_id, lock), level=Manager.DEBUG_LEVEL)
 
         if lock:
-            ret = "{0}.lock_user_{1}_{2}_{3}".format(entity.typ, entity.name, code_id, lock.identifier)
+            ret = "{0}.{1}_{2}_{3}_{4}".format(entity.typ, ENTITY_PREFIX, entity.name, code_id, lock.identifier)
         else:
-            ret = "{0}.lock_user_{1}_{2}".format(entity.typ, entity.name, code_id)
+            ret = "{0}.{1}_{2}_{3}".format(entity.typ, ENTITY_PREFIX, entity.name, code_id)
         return ret
 
     def all_entities_exist(self) -> bool:
@@ -162,12 +160,12 @@ class Manager(hass.Hass):
                 for k in self.keys_1:
                     entity = self.get_entity(k, i + 1)
                     if entity not in all_entities:
-                        self.log("{0} does not exist, please create".format(entity), level="ERROR")
+                        self.log("{0} does not exist.".format(entity), level="ERROR")
                         go_on = False
                 for k in self.keys_2:
                     entity = self.get_entity(k, i + 1, l)
                     if entity not in all_entities:
-                        self.log("{0} does not exist, please create".format(entity), level="ERROR")
+                        self.log("{0} does not exist.".format(entity), level="ERROR")
                         go_on = False
         return go_on
 
@@ -208,39 +206,39 @@ class Manager(hass.Hass):
 
             access_schedule = self.get_entity(SCHEDULE, code_id, lock)
             if self.get_state(access_schedule) == SCHEDULE_ONETIME:
-                self.log("clearing code {0} from {1} lock after one-time use".format(code_id, lock.identifier))
+                self.log("Clearing code {0} from {1} lock after one-time use".format(code_id, lock.identifier))
                 self.call_service("input_select/select_option", entity_id=access_schedule, option=SCHEDULE_NEVER)
         elif alarm_type == 21:
             if alarm_level == 1:
-                self.log("{0} manually locked".format(lock.identifier))
+                self.log("{0} manually locked.".format(lock.identifier.title()))
             elif alarm_level == 2:
-                self.log("{0} locked by keypad".format(lock.identifier))
+                self.log("{0} locked by keypad.".format(lock.identifier.title()))
         elif alarm_type == 22:
-            self.log("{0} manually unlocked".format(lock.identifier))
+            self.log("{0} manually unlocked.".format(lock.identifier.title()))
         elif alarm_type == 23:
-            self.log("{0} remote lock jammed".format(lock.identifier))
+            self.log("{0} remote lock jammed.".format(lock.identifier.title()))
         elif alarm_type == 24:
-            self.log("{0} remotely locked".format(lock.identifier))
+            self.log("{0} remotely locked.".format(lock.identifier.title()))
         elif alarm_type == 25:
-            self.log("{0} remotely unlocked".format(lock.identifier))
+            self.log("{0} remotely unlocked.".format(lock.identifier.title()))
         elif alarm_type == 26:
-            self.log("{0} auto-relock jammed".format(lock.identifier))
+            self.log("{0} auto-relock jammed.".format(lock.identifier.title()))
         elif alarm_type == 27:
-            self.log("{0} auto-relocked".format(lock.identifier))
+            self.log("{0} auto-relocked.".format(lock.identifier.title()))
         elif alarm_type == 32:
-            self.log("{0} all codes deleted".format(lock.identifier))
+            self.log("{0} all codes deleted.".format(lock.identifier.title()))
         elif alarm_type == 122:
-            self.log("{0} updated code {1}".format(lock.identifier, alarm_level))
+            self.log("{0} updated code {1}.".format(lock.identifier.title(), alarm_level))
         elif alarm_type == 161:
-            self.log("{0} tampered!".format(lock.identifier))
+            self.log("{0} tampered!".format(lock.identifier.title()))
         elif alarm_type == 167:
-            self.log("low battery on {0}: REPLACE BATTERIES".format(lock.identifier))
+            self.log("Low battery on {0}: REPLACE BATTERIES.".format(lock.identifier))
         elif alarm_type == 168:
-            self.log("critically low battery on {0}: REPLACE BATTERIES NOW!".format(lock.identifier))
+            self.log("Critically low battery on {0}: REPLACE BATTERIES NOW!".format(lock.identifier))
         elif alarm_type == 169:
-            self.log("battery to low to operate {0}".format(lock.identifier))
+            self.log("Battery to low to operate {0}.".format(lock.identifier))
         else:
-            self.log("Unknown alarm {0} level {1}".format(alarm_type, alarm_level))
+            self.log("Unknown alarm {0} level {1} on {2}.".format(alarm_type, alarm_level, lock.identifier))
 
     def access_schedule_listener(self, entity, attribute, old, new, kwargs):
         self.log("access_schedule_listener({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=Manager.DEBUG_LEVEL)
@@ -268,10 +266,93 @@ class Manager(hass.Hass):
         code_id = kwargs["code_id"]
 
         if new != old:
-            self.log("sending new PIN for code {0}".format(code_id), level=Manager.DEBUG_LEVEL)
+            self.log("Sending new PIN for code {0}.".format(code_id), level=Manager.DEBUG_LEVEL)
 
             for l in self.locks:
                 kwargs["lock"] = l
                 if self.get_state(self.get_entity(ACCESS, code_id, l)) == "on":
                     self.log("Access code {0} on lock {1} is enabled, re-sending.".format(code_id, l.identifier), Manager.DEBUG_LEVEL)
                     self.set_code(None, None, None, None, kwargs)
+
+    def generate_config(self):
+        self.log("generate_config()", level=Manager.DEBUG_LEVEL)
+
+        for i in range(self.codes):
+            package_out = """
+input_text:
+
+  {0}:
+    name: Name
+  {1}:
+    name: Code
+    pattern: '^[0-9]{{4,8}}$'
+    mode: password
+
+input_select:
+""".format(self.get_entity(NAME, i + 1).split(".")[-1],
+           self.get_entity(PIN, i + 1).split(".")[-1])
+
+            for l in self.locks:
+                package_out += """
+  {0}:
+    name: {1} Access Schedule
+    options:
+      - {2}
+      - {3}
+      - {4}
+      - {5}
+      - {6}
+      - {7}
+""".format(self.get_entity(ACCESS, i + 1, l).split(".")[-1],
+           l.identifier.title(),
+           SCHEDULE_ALWAYS,
+           SCHEDULE_RECURRING,
+           SCHEDULE_TEMPORARY,
+           SCHEDULE_ONETIME,
+           SCHEDULE_NEVER,
+           SCHEDULE_MANUAL)
+
+            package_out += """
+input_datetime:
+"""
+
+            for l in self.locks:
+                package_out += """
+  {0}:
+    name: {4} Start Date/Time
+    has_date: true
+    has_time: true
+  {1}:
+    name: {4} End Date/Time
+    has_date: true
+    has_time: true
+  {2}:
+    name: {4} Start Time
+    has_time: true
+  {3}:
+    name: {4} End Time
+    has_time: true
+""".format(self.get_entity(START_DT, i + 1, l).split(".")[-1],
+           self.get_entity(STOP_DT, i + 1, l).split(".")[-1],
+           self.get_entity(START_TIME, i + 1, l).split(".")[-1],
+           self.get_entity(STOP_TIME, i + 1, l).split(".")[-1],
+           l.identifier.title())
+
+            package_out += """
+input_boolean:
+"""
+
+            for l in self.locks:
+                package_out += """
+  {0}:
+    name: {1} Access
+""".format(self.get_entity(ACCESS, i + 1, l).split(".")[-1],
+           l.identifier.title())
+
+            package_fn = os.path.join(self.args["packages_dir"], "{0}_{1}.yaml".format(ENTITY_PREFIX, i + 1))
+
+            file = open(package_fn, "w")
+            file.write(package_out)
+            file.close()
+
+        self.log("Automatic configuration re-generated in {0}. Please restart HA.".format(self.args["packages_dir"]))
