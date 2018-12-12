@@ -49,7 +49,7 @@ SCHEDULE_MANUAL = "Manual"
 
 
 class Manager(hass.Hass):
-    DEBUG_LEVEL = "INFO"
+    DEBUG_LEVEL = "DEBUG"
 
     def initialize(self):
         self.log("initialize()", level=Manager.DEBUG_LEVEL)
