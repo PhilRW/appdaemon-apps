@@ -303,7 +303,7 @@ input_select:
       - {5}
       - {6}
       - {7}
-""".format(self.get_entity(ACCESS, i + 1, l).split(".")[-1],
+""".format(self.get_entity(SCHEDULE, i + 1, l).split(".")[-1],
            l.identifier.title(),
            SCHEDULE_ALWAYS,
            SCHEDULE_RECURRING,
