@@ -33,57 +33,54 @@ homeassistant:
 And here's an example Lovelace frontend configuration:
 
 ```yaml
-  - title: Locks
-    icon: mdi:lock-smart
-    id: locks
-    cards:
-      - type: vertical-stack
-        id: locks-user-1
-        cards:
-          - type: entities
-            id: locks-user-1-entities
-            title: User 1
-            show_header_toggle: false
-            entities:
-              - input_text.lock_user_name_1
-              - input_text.lock_user_pin_1
-              - input_select.lock_user_access_schedule_1_front
-          - type: conditional
-            id: locks-user-1-front-recurring
-            conditions:
-              - entity: input_select.lock_user_access_schedule_1_front
-                state: "Recurring"
-            card:
-              type: entities
-              id: locks-user-1-front-recurring-entities
-              title: User 1 Front Door Recurring Access
-              entities:
-                - input_datetime.lock_user_start_time_1_front
-                - input_datetime.lock_user_stop_time_1_front
-          - type: conditional
-            id: locks-user-1-front-temporary
-            conditions:
-              - entity: input_select.lock_user_access_schedule_1_front
-                state: "Temporary"
-            card:
-              type: entities
-              id: locks-user-1-front-temporary-entities
-              title: User 1 Front Door Temporary Access
-              entities:
-                - input_datetime.lock_user_start_dt_1_front
-                - input_datetime.lock_user_stop_dt_1_front
-          - type: conditional
-            id: locks-user-1-front-manual
-            conditions:
-              - entity: input_select.lock_user_access_schedule_1_front
-                state: "Manual"
-            card:
-              type: entities
-              id: locks-user-1-front-manual-entities
-              title: User 1 Front Door Manual Access
-              show_header_toggle: false
-              entities:
-                - input_boolean.lock_user_access_1_front
-
+type: vertical-stack
+id: locks-user-1
+cards:
+  - type: entities
+    id: locks-user-1-entities
+    title: User 1
+    show_header_toggle: false
+    entities:
+      - input_text.lock_user_name_1
+      - input_text.lock_user_pin_1
+      - input_select.lock_user_access_schedule_1_front
+  - type: conditional
+    id: locks-user-1-front-recurring
+    conditions:
+      - entity: input_select.lock_user_access_schedule_1_front
+        state: Recurring
+    card:
+      type: entities
+      id: locks-user-1-front-recurring-entities
+      title: User 1 Front Door Recurring Access
+      show_header_toggle: false
+      entities:
+        - input_datetime.lock_user_start_time_1_front
+        - input_datetime.lock_user_stop_time_1_front
+  - type: conditional
+    id: locks-user-1-front-temporary
+    conditions:
+      - entity: input_select.lock_user_access_schedule_1_front
+        state: Temporary
+    card:
+      type: entities
+      id: locks-user-1-front-temporary-entities
+      title: User 1 Front Door Temporary Access
+      show_header_toggle: false
+      entities:
+        - input_datetime.lock_user_start_dt_1_front
+        - input_datetime.lock_user_stop_dt_1_front
+  - type: conditional
+    id: locks-user-1-front-manual
+    conditions:
+      - entity: input_select.lock_user_access_schedule_1_front
+        state: Manual
+    card:
+      type: entities
+      id: locks-user-1-front-manual-entities
+      title: User 1 Front Door Manual Access
+      show_header_toggle: false
+      entities:
+        - input_boolean.lock_user_access_1_front
 ```
 
