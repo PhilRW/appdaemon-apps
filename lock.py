@@ -202,11 +202,11 @@ class Manager(hass.Hass):
         if alarm_type == 19:
             code_id = alarm_level
             user_name = self.get_state(self.get_entity(NAME, code_id))
-            self.log("{0} unlocked by {1}".format(lock.identifier, user_name))
+            self.log("{0} unlocked by {1}.".format(lock.identifier.title(), user_name))
 
             access_schedule = self.get_entity(SCHEDULE, code_id, lock)
             if self.get_state(access_schedule) == SCHEDULE_ONETIME:
-                self.log("Clearing code {0} from {1} lock after one-time use".format(code_id, lock.identifier))
+                self.log("Clearing code {0} from {1} lock after one-time use.".format(code_id, lock.identifier))
                 self.call_service("input_select/select_option", entity_id=access_schedule, option=SCHEDULE_NEVER)
         elif alarm_type == 21:
             if alarm_level == 1:
