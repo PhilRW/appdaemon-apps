@@ -210,17 +210,17 @@ class Manager(hass.Hass):
                 self.call_service("input_select/select_option", entity_id=access_schedule, option=SCHEDULE_NEVER)
         elif alarm_type == 21:
             if alarm_level == 1:
-                self.log("{0} manually locked.".format(lock.identifier.title()))
+                self.log("{0} locked manually.".format(lock.identifier.title()))
             elif alarm_level == 2:
                 self.log("{0} locked by keypad.".format(lock.identifier.title()))
         elif alarm_type == 22:
-            self.log("{0} manually unlocked.".format(lock.identifier.title()))
+            self.log("{0} unlocked manually.".format(lock.identifier.title()))
         elif alarm_type == 23:
             self.log("{0} remote lock jammed.".format(lock.identifier.title()))
         elif alarm_type == 24:
-            self.log("{0} remotely locked.".format(lock.identifier.title()))
+            self.log("{0} locked remotely.".format(lock.identifier.title()))
         elif alarm_type == 25:
-            self.log("{0} remotely unlocked.".format(lock.identifier.title()))
+            self.log("{0} unlocked remotely.".format(lock.identifier.title()))
         elif alarm_type == 26:
             self.log("{0} auto-relock jammed.".format(lock.identifier.title()))
         elif alarm_type == 27:
@@ -285,6 +285,8 @@ input_text:
     name: Name
   {1}:
     name: Code
+    min: 1000
+    max: 99999999
     pattern: '^[0-9]{{4,8}}$'
     mode: password
 
