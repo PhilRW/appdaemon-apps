@@ -227,16 +227,20 @@ class Manager(hass.Hass):
             self.log("{0} auto-relocked.".format(lock.identifier.title()))
         elif alarm_type == 32:
             self.log("{0} all codes deleted.".format(lock.identifier.title()))
+        elif alarm_type == 112:
+            self.log("{0} lock code {1} set.".format(lock.identifier.title(), alarm_level))
+        elif alarm_type == 113:
+            self.log("{0} duplicate PIN code: {1}.".format(lock.identifier.title(), alarm_level), level="WARNING")
         elif alarm_type == 122:
             self.log("{0} updated code {1}.".format(lock.identifier.title(), alarm_level))
         elif alarm_type == 161:
-            self.log("{0} tampered!".format(lock.identifier.title()))
+            self.log("{0} tampered!".format(lock.identifier.title()), level="WARNING")
         elif alarm_type == 167:
-            self.log("Low battery on {0}: REPLACE BATTERIES.".format(lock.identifier))
+            self.log("Low battery on {0}: REPLACE BATTERIES.".format(lock.identifier), level="WARNING")
         elif alarm_type == 168:
-            self.log("Critically low battery on {0}: REPLACE BATTERIES NOW!".format(lock.identifier))
+            self.log("Critically low battery on {0}: REPLACE BATTERIES NOW!".format(lock.identifier), level="WARNING")
         elif alarm_type == 169:
-            self.log("Battery to low to operate {0}.".format(lock.identifier))
+            self.log("Battery to low to operate {0}.".format(lock.identifier), level="WARNING")
         else:
             self.log("Unknown alarm {0} level {1} on {2}.".format(alarm_type, alarm_level, lock.identifier))
 
@@ -285,8 +289,6 @@ input_text:
     name: Name
   {1}:
     name: Code
-    min: 1000
-    max: 99999999
     pattern: '^[0-9]{{4,8}}$'
     mode: password
 
