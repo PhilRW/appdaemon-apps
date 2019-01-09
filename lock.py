@@ -89,7 +89,7 @@ class Manager(hass.Hass):
             for i in range(self.codes):
                 self.listen_state(self.pin_listener, self.get_entity(PIN, i + 1), code_id=i + 1)
             for l in self.locks:
-                # self.listen_state(self.lock_alarm_level_listener, l.alarm_level, lock=l)
+                self.listen_state(self.lock_alarm_level_listener, l.alarm_level, lock=l)
                 self.listen_state(self.log_state, l.lock, attribute="lock_status", lock=l)
                 for i in range(self.codes):
                     self.run_minutely(self.set_access, None, code_id=i + 1, lock=l)
