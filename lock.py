@@ -89,7 +89,8 @@ class Manager(hass.Hass):
             for i in range(self.codes):
                 self.listen_state(self.pin_listener, self.get_entity(PIN, i + 1), code_id=i + 1)
             for l in self.locks:
-                self.listen_state(self.lock_alarm_level_listener, l.alarm_level, lock=l)
+                # self.listen_state(self.lock_alarm_level_listener, l.alarm_level, lock=l)
+                self.listen_state(self.log_state, l.lock, attribute="lock_status", lock=l)
                 for i in range(self.codes):
                     self.run_minutely(self.set_access, None, code_id=i + 1, lock=l)
                     self.listen_state(self.set_code, self.get_entity(ACCESS, i + 1, l), new="on", code_id=i + 1, lock=l)
@@ -367,3 +368,11 @@ input_boolean:
             file.close()
 
         self.log("Automatic configuration re-generated in {0}. Please restart HA.".format(self.args["packages_dir"]))
+
+    def log_state(self, entity, attribute, old, new, kwargs):
+        self.log("log_state({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=Manager.DEBUG_LEVEL)
+
+        lock = kwargs["lock"]
+
+        if new != old:
+            self.log("{0} lock - {1}".format(lock.identifier.title(), new))
