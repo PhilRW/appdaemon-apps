@@ -15,12 +15,13 @@ class EntityType:
 
 class Lock:
 
-    def __init__(self, parent, identifier, lock, alarm_type, alarm_level):
+    def __init__(self, parent, identifier, lock, alarm_type, alarm_level, clear_usercode_workaround=False):
         self.parent = parent
         self.identifier = identifier
         self.lock = lock
         self.alarm_type = alarm_type
         self.alarm_level = alarm_level
+        self.clear_usercode_workaround = clear_usercode_workaround
 
     def __repr__(self):
         return "Lock<{0}: {1}>".format(self.identifier, self.lock)
@@ -61,7 +62,7 @@ class Manager(hass.Hass):
 
         self.codes = int(self.args['codes'])
         self.users = []
-        self.locks = [Lock(self, l["identifier"], l["lock"], l["alarm_type"], l["alarm_level"]) for l in self.args["locks"]]
+        self.locks = [Lock(self, **l) for l in self.args["locks"]]
         self.keys_1 = [
             NAME,
             PIN
@@ -189,8 +190,14 @@ class Manager(hass.Hass):
         code_id = kwargs["code_id"]
         lock = kwargs["lock"]
 
-        self.log("lock/clear_usercode node_id={0} usercode={1}".format(lock.node_id(), code_id))
-        self.call_service("lock/clear_usercode", node_id=lock.node_id(), code_slot=code_id)
+        if lock.clear_usercode_workaround:
+            code = str(random.randrange(10000000, 99999999))
+            self.log("lock/clear_usercode (workaround): set code #{0} to random 8-digit code".format(code_id))
+            self.log("lock/set_usercode node_id={0} code_slot={1} usercode={2}".format(lock.node_id(), code_id, "*" * len(code)))
+            self.call_service("lock/set_usercode", node_id=lock.node_id(), code_slot=code_id, usercode=code)
+        else:
+            self.log("lock/clear_usercode node_id={0} usercode={1}".format(lock.node_id(), code_id))
+            self.call_service("lock/clear_usercode", node_id=lock.node_id(), code_slot=code_id)
 
     def lock_alarm_level_listener(self, entity, attribute, old, new, kwargs):
         self.log("lock_alarm_level_listener({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=Manager.DEBUG_LEVEL)

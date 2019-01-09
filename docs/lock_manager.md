@@ -15,7 +15,10 @@ lock_manager:
       lock: lock.front_door_lock
       alarm_level: sensor.front_door_lock_alarm_level
       alarm_type: sensor.front_door_lock_alarm_type
+      clear_usercode_workaround: True
 ```
+
+`clear_usercode_workaround` is an optional boolean that, if `True`, will set a random 8-digit code instead of calling the `lock.clear_usercode` service.
 
 The app will warn you if it cannot find the required entities and will attempt to automatically create them in the `packages_dir` directory (which should be writable by AppDaemon).
 
