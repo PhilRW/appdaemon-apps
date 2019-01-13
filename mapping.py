@@ -11,16 +11,16 @@ class TempToHue(hass.Hass):
         self.low_hue = 240
         self.high_hue = 360
 
-        if "temperature_sensor" and \
-                "low_temp" and \
-                "high_temp" and \
+        if "temperature_sensor" in self.args and \
+                "low_temp" in self.args and \
+                "high_temp" in self.args and \
                 "output_entity" in self.args:
             self.listen_state(self.set_hue, self.args["temperature_sensor"])
         else:
             self.log("Missing required settings, doing nothing.", level="WARNING")
 
     def set_hue(self, entity, attribute, old, new, kwargs):
-        self.log("set_hue({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=TempToHue.DEBUG_LEVEL)
+        self.log("button_listener({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=TempToHue.DEBUG_LEVEL)
 
         low = float(self.args["low_temp"])
         high = float(self.args["high_temp"])

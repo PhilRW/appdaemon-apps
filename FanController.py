@@ -45,7 +45,7 @@ class HumidityFan(hass.Hass):
         self.motion_sensor_timeout = 60
         self.use_backup_switch = False
 
-        if "humidity_sensor" and "exhaust_fan" in self.args:
+        if "humidity_sensor" in self.args and "exhaust_fan" in self.args:
             self.listen_state(self.humidity, self.args["humidity_sensor"])
             if "motion_sensor" in self.args:
                 self.listen_state(self.motion, self.args["motion_sensor"])

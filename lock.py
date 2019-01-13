@@ -56,7 +56,9 @@ class Manager(hass.Hass):
         self.log("initialize()", level=Manager.DEBUG_LEVEL)
         self.log("args: {0}".format(self.args), level="INFO")
 
-        if "packages_dir" and "codes" and "locks" not in self.args:
+        if "packages_dir" not in self.args or \
+                "codes" not in self.args or \
+                "locks" not in self.args:
             self.log("Incorrect configuration.", level="WARNING")
             raise ValueError("Incorrect configuration.")
 
@@ -241,14 +243,17 @@ class Manager(hass.Hass):
             self.log("{0} updated code {1}.".format(lock.identifier.title(), alarm_level))
         elif alarm_type == 161:
             self.log("{0} tampered!".format(lock.identifier.title()), level="WARNING")
+            self.notify("{0} lock tampered!".format(lock.identifier.title()), name=self.args["notification"])
         elif alarm_type == 167:
             self.log("Low battery on {0}: REPLACE BATTERIES.".format(lock.identifier), level="WARNING")
+            self.notify("{0} lock batteries low.".format(lock.identifier.title()), name=self.args["notification"])
         elif alarm_type == 168:
             self.log("Critically low battery on {0}: REPLACE BATTERIES NOW!".format(lock.identifier), level="WARNING")
+            self.notify("{0} lock batteries critically low.".format(lock.identifier.title()), name=self.args["notification"])
         elif alarm_type == 169:
-            self.log("Battery to low to operate {0}.".format(lock.identifier.title()), level="WARNING")
+            self.log("Battery too low to operate {0}.".format(lock.identifier.title()), level="WARNING")
         else:
-            self.log("{0} - {1}.".format(lock.identifier, lock_status))
+            self.log("{0} lock - {1}.".format(lock.identifier, lock_status))
 
     def access_schedule_listener(self, entity, attribute, old, new, kwargs):
         self.log("access_schedule_listener({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=Manager.DEBUG_LEVEL)
