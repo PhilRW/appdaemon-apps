@@ -24,5 +24,6 @@ Each app now has its own separate page for documentation:
 - [Todoist Tasks on Lametric](docs/lametric_todoist_tasks.md)
 - [Temperature-to-Hue](docs/mapping.md)
 - [Lock Manager](docs/lock_manager.md)
+- [Button Translator](docs/button_translator.md)
 
 
