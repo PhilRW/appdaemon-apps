@@ -10,6 +10,7 @@ lock_manager:
   class: Manager
   packages_dir: /share/config/packages
   codes: 4
+  notify: html5
   locks:
     - identifier: front
       lock: lock.front_door_lock
