@@ -151,6 +151,7 @@ class Manager(hass.Hass):
             ret = "{0}.{1}_{2}_{3}_{4}".format(entity.typ, ENTITY_PREFIX, entity.name, code_id, lock.identifier)
         else:
             ret = "{0}.{1}_{2}_{3}".format(entity.typ, ENTITY_PREFIX, entity.name, code_id)
+        self.log("entity name: {0}".format(ret), level=Manager.DEBUG_LEVEL)
         return ret
 
     def all_entities_exist(self) -> bool:
