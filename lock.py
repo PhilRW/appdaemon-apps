@@ -254,7 +254,7 @@ class Manager(hass.Hass):
         elif alarm_type == 169:
             self.log("Battery too low to operate {0}.".format(lock.identifier.title()), level="WARNING")
         else:
-            self.log("{0} lock - {1}.".format(lock.identifier, lock_status))
+            self.log("{0} lock - {1}.".format(lock.identifier.title(), lock_status))
 
     def access_schedule_listener(self, entity, attribute, old, new, kwargs):
         self.log("access_schedule_listener({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=Manager.DEBUG_LEVEL)
