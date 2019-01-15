@@ -4,7 +4,7 @@ import appdaemon.plugins.hass.hassapi as hass
 
 
 class Translator(hass.Hass):
-    DEBUG_LEVEL = "INFO"
+    DEBUG_LEVEL = "DEBUG"
 
     def initialize(self):
         self.log("initialize()", level=Translator.DEBUG_LEVEL)
