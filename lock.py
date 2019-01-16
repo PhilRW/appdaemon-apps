@@ -40,6 +40,7 @@ STOP_DT = EntityType("stop_dt", "input_datetime")
 START_TIME = EntityType("start_time", "input_datetime")
 STOP_TIME = EntityType("stop_time", "input_datetime")
 ACCESS = EntityType("access", "input_boolean")
+NOTIFY = EntityType("notify", "input_boolean")
 
 SCHEDULE_ALWAYS = "Always"
 SCHEDULE_RECURRING = "Recurring"
@@ -67,7 +68,8 @@ class Manager(hass.Hass):
         self.locks = [Lock(self, **l) for l in self.args["locks"]]
         self.keys_1 = [
             NAME,
-            PIN
+            PIN,
+            NOTIFY
         ]
         self.keys_2 = [
             SCHEDULE,
@@ -210,10 +212,18 @@ class Manager(hass.Hass):
         alarm_level = int(new)
         lock_status = self.get_state(lock.lock, attribute="lock_status")
 
-        if alarm_type == 19:
+        if alarm_type == 9 and alarm_level == 1:
+            msg = "{0} lock jammed!".format(lock.identifier.title())
+            self.log(msg, level="WARNING")
+            self.notify(msg, name=self.args["notification"])
+        elif alarm_type == 19:
             code_id = alarm_level
             user_name = self.get_state(self.get_entity(NAME, code_id))
-            self.log("{0} unlocked by {1}.".format(lock.identifier.title(), user_name))
+            msg = "{0} unlocked by {1}.".format(lock.identifier.title(), user_name)
+
+            self.log(msg)
+            if self.get_state(self.get_entity(NOTIFY, code_id)) == "on":
+                self.notify(msg, name=self.args["notification"])
 
             access_schedule = self.get_entity(SCHEDULE, code_id, lock)
             if self.get_state(access_schedule) == SCHEDULE_ONETIME:
@@ -254,7 +264,7 @@ class Manager(hass.Hass):
         elif alarm_type == 169:
             self.log("Battery too low to operate {0}.".format(lock.identifier.title()), level="WARNING")
         else:
-            self.log("{0} lock - {1}.".format(lock.identifier.title(), lock_status))
+            self.log("{0} lock - {1} (alarm type {2} level {3}).".format(lock.identifier.title(), lock_status, alarm_type, alarm_level))
 
     def access_schedule_listener(self, entity, attribute, old, new, kwargs):
         self.log("access_schedule_listener({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=Manager.DEBUG_LEVEL)
@@ -356,7 +366,10 @@ input_datetime:
 
             package_out += """
 input_boolean:
-"""
+
+  {0}:
+    name: Notify
+""".format(self.get_entity(NOTIFY, i + 1).split(".")[-1])
 
             for l in self.locks:
                 package_out += """
