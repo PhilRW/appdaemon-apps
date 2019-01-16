@@ -194,7 +194,7 @@ class Manager(hass.Hass):
         lock = kwargs["lock"]
 
         if lock.clear_usercode_workaround:
-            code = str(random.randrange(10000000, 99999999))
+            code = str(random.randint(10000000, 99999999))
             self.log("lock/clear_usercode (workaround): set code #{0} to random 8-digit code".format(code_id))
             self.log("lock/set_usercode node_id={0} code_slot={1} usercode={2}".format(lock.node_id(), code_id, "*" * len(code)))
             self.call_service("lock/set_usercode", node_id=lock.node_id(), code_slot=code_id, usercode=code)
