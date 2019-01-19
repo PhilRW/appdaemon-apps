@@ -213,9 +213,7 @@ class Manager(hass.Hass):
         lock_status = self.get_state(lock.lock, attribute="lock_status")
 
         if alarm_type == 9 and alarm_level == 1:
-            msg = "{0} lock jammed!".format(lock.identifier.title())
-            self.log(msg, level="WARNING")
-            self.notify(msg, name=self.args["notification"])
+            self.log_and_notify("{0} lock jammed!".format(lock.identifier.title()))
         elif alarm_type == 19:
             code_id = alarm_level
             user_name = self.get_state(self.get_entity(NAME, code_id))
@@ -248,23 +246,28 @@ class Manager(hass.Hass):
             self.log("{0} auto-relocked.".format(lock.identifier.title()))
         elif alarm_type == 32:
             self.log("{0} all codes deleted.".format(lock.identifier.title()))
+        elif alarm_type == 112:
+            self.log("{0} user {1} added/changed.".format(lock.identifier.title(), alarm_level))
         elif alarm_type == 113:
             self.log("{0} duplicate PIN code: {1}.".format(lock.identifier.title(), alarm_level), level="WARNING")
         elif alarm_type == 122:
             self.log("{0} updated code {1}.".format(lock.identifier.title(), alarm_level))
         elif alarm_type == 161:
-            self.log("{0} tampered!".format(lock.identifier.title()), level="WARNING")
-            self.notify("{0} lock tampered!".format(lock.identifier.title()), name=self.args["notification"])
+            self.log_and_notify("{0} lock tampered!".format(lock.identifier.title()))
         elif alarm_type == 167:
-            self.log("Low battery on {0}: REPLACE BATTERIES.".format(lock.identifier), level="WARNING")
-            self.notify("{0} lock batteries low.".format(lock.identifier.title()), name=self.args["notification"])
+            self.log_and_notify("Low battery on {0} lock: REPLACE BATTERIES.".format(lock.identifier))
         elif alarm_type == 168:
-            self.log("Critically low battery on {0}: REPLACE BATTERIES NOW!".format(lock.identifier), level="WARNING")
-            self.notify("{0} lock batteries critically low.".format(lock.identifier.title()), name=self.args["notification"])
+            self.log_and_notify("Critically low battery on {0} lock: REPLACE BATTERIES NOW!".format(lock.identifier))
         elif alarm_type == 169:
-            self.log("Battery too low to operate {0}.".format(lock.identifier.title()), level="WARNING")
+            self.log_and_notify("Battery too low to operate {0} lock.".format(lock.identifier.title()))
         else:
-            self.log("{0} lock - {1} (alarm type {2} level {3}).".format(lock.identifier.title(), lock_status, alarm_type, alarm_level))
+            self.log("{0} lock - {1} [alarm type {2} level {3}].".format(lock.identifier.title(), lock_status, alarm_type, alarm_level))
+
+    def log_and_notify(self, msg, lvl="WARNING"):
+        self.log("log_and_notify({0}, {1}".format(msg, lvl), level=Manager.DEBUG_LEVEL)
+
+        self.log(msg, level=lvl)
+        self.notify(msg, name=self.args["notification"])
 
     def access_schedule_listener(self, entity, attribute, old, new, kwargs):
         self.log("access_schedule_listener({0}, {1}, {2}, {3}, {4})".format(entity, attribute, old, new, kwargs), level=Manager.DEBUG_LEVEL)
