@@ -47,6 +47,7 @@ cards:
     entities:
       - input_text.lock_user_name_1
       - input_text.lock_user_pin_1
+      - input_boolean.lock_user_notify_1
       - input_select.lock_user_access_schedule_1_front
   - type: conditional
     id: locks-user-1-front-recurring
