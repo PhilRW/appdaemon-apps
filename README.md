@@ -22,7 +22,7 @@ Each app now has its own separate page for documentation:
 - [Energy Allowance](docs/energy_allowance.md)
 - [Time Of Use (TOU)](docs/time_of_use.md)
 - [Todoist Tasks on Lametric](docs/lametric_todoist_tasks.md)
-- [Temperature-to-Hue](docs/mapping.md)
+- [Temperature-to-Hue and Daily Color Name](docs/mapping.md) 
 - [Lock Manager](docs/lock_manager.md)
 - [Button Translator](docs/button_translator.md)
 
