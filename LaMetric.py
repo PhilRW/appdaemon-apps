@@ -132,7 +132,10 @@ class EnergyApp(hass.Hass):
     def chart(self, kwargs):
         self.log("update_chart({0})".format(kwargs), level=EnergyApp.DEBUG_LEVEL)
 
-        cur_power = float(self.get_state(self.args["power_meter"]))
+        try:
+            cur_power = float(self.get_state(self.args["power_meter"]))
+        except ValueError:
+            cur_power = 0
 
         while len(self.chart_readings) > 36:
             self.chart_readings.pop(0)
