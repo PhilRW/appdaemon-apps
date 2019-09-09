@@ -232,7 +232,7 @@ class TaskApp(hass.Hass):
             raise e
 
         r = requests.get(
-            "https://beta.todoist.com/API/v8/tasks",
+            "https://api.todoist.com/rest/v1/tasks",
             params={
                 "project_id": self.project_id
             },
@@ -244,16 +244,15 @@ class TaskApp(hass.Hass):
             self.log("task found: {0}".format(task), level=TaskApp.DEBUG_LEVEL)
             if 'due' in task:
                 try:
-                    t_tz = task['due']['timezone'][3:]  # assumes begins with "UTC"
-                    t_dt = task['due']['datetime'][:-1]  # assumes ends with "Z"
-                    dt = dateutil.parser.parse(f"{t_dt}{t_tz}")
+                    t_tz = task['due']['timezone']
+                    t_dt = task['due']['datetime']
+                    dt = dateutil.parser.parse(t_dt).astimezone(pytz.timezone(t_tz))
                 except:
                     self.log("except...")
                     dt = datetime.datetime.strptime(task['due']['date'], "%Y-%m-%d").astimezone(tz)
                     dt += datetime.timedelta(days=1)
 
                 self.log(f"parsed dt: {dt}, now: {datetime.datetime.now(tz)}", level=TaskApp.DEBUG_LEVEL)
-                # self.log(f"utcoffset of {dt} is = {tz.utcoffset(datetime.datetime.now(dt))}")
 
                 if dt < datetime.datetime.now(tz):
                     self.log("adding task to task list: {0}".format(task['content']), level=TaskApp.DEBUG_LEVEL)
