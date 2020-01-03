@@ -3,6 +3,31 @@ import datetime
 
 import appdaemon.plugins.hass.hassapi as hass
 
+PEAK_START_HOUR = 14
+PEAK_END_HOUR = 18
+SHOULDER_START_HOUR = 9
+SHOULDER_END_HOUR = 21
+
+SUMMER_MONTHS = [6, 7, 8, 9]
+ON_PEAK = 'on-peak'
+SHOULDER = 'shoulder'
+OFF_PEAK = 'off-peak'
+
+PCCA = 0.00401
+DSMCA = 0.00159
+TCA = 0.00203
+CACJA = 0.00301
+
+ECA_ON_PEAK = 0.04170
+ECA_OFF_PEAK = 0.02574
+
+RATE_SUMMER_ON_PEAK = 0.13814
+RATE_SUMMER_SHOULDER = 0.08420
+RATE_SUMMER_OFF_PEAK = 0.04440
+RATE_WINTER_ON_PEAK = 0.08880
+RATE_WINTER_SHOULDER = 0.05431
+RATE_WINTER_OFF_PEAK = 0.04440
+
 
 class Holiday(object):
     def __init__(self, name, month, dow=None, wom=None, day=None):
@@ -75,19 +100,22 @@ class StateManagerXcelColorado(hass.Hass):
         self.log("update_state({0})".format(kwargs), level="DEBUG")
 
         now = datetime.datetime.now()
-        if 18 > now.hour >= 14 \
+        if PEAK_END_HOUR > now.hour >= PEAK_START_HOUR \
                 and now.weekday() not in [5, 6] \
                 and not self.is_holiday(now):
-            tou_mode = "on-peak"
+            tou_mode = ON_PEAK
             lametric_icon = "a11217"
-        elif 21 > now.hour >= 9:
-            tou_mode = "shoulder"
+        elif SHOULDER_END_HOUR > now.hour >= SHOULDER_START_HOUR:
+            tou_mode = SHOULDER
             lametric_icon = "a11219"
         else:
-            tou_mode = "off-peak"
+            tou_mode = OFF_PEAK
             lametric_icon = "a11218"
 
-        attributes = {"lametric_icon": lametric_icon}
+        attributes = {
+            "lametric_icon": lametric_icon,
+            "rate": self.get_rate(tou_mode)
+        }
 
         if tou_mode != self.state:
             self.log("{0} is now {1}...".format(self.device, tou_mode), level="INFO")
@@ -95,3 +123,28 @@ class StateManagerXcelColorado(hass.Hass):
 
             self.state = tou_mode
             self.set_state(self.device, state=tou_mode, attributes=attributes)
+
+    def get_rate(self, tou_mode):
+        self.log("get_rate({0})".format(tou_mode), level="DEBUG")
+
+        rate = 0.00
+        eca = ECA_OFF_PEAK
+
+        if tou_mode == ON_PEAK:
+            eca = ECA_ON_PEAK
+            if datetime.datetime.now().month in SUMMER_MONTHS:
+                rate = RATE_SUMMER_ON_PEAK
+            else:
+                rate = RATE_WINTER_ON_PEAK
+        elif tou_mode == SHOULDER:
+            if datetime.datetime.now().month in SUMMER_MONTHS:
+                rate = RATE_SUMMER_SHOULDER
+            else:
+                rate = RATE_WINTER_SHOULDER
+        elif tou_mode == OFF_PEAK:
+            if datetime.datetime.now().month in SUMMER_MONTHS:
+                rate = RATE_SUMMER_OFF_PEAK
+            else:
+                rate = RATE_WINTER_OFF_PEAK
+
+        return rate + eca + PCCA + DSMCA + TCA + CACJA
