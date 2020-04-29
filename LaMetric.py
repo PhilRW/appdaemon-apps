@@ -188,7 +188,7 @@ class EnergyApp(hass.Hass):
         url = "https://developer.lametric.com/api/v1/dev/widget/update/com.lametric.{0}/1".format(self.app_id)
         headers = {"X-Access-Token": self.access_token}
         try:
-            result = requests.post(url, json.dumps(self.frames), headers=headers)
+            result = requests.post(url, json.dumps(self.frames), headers=headers, timeout=5)
             self.log("status_code: {0}, reason: {1}".format(result.status_code, result.reason), level=EnergyApp.DEBUG_LEVEL)
 
             if result.status_code != 200:
