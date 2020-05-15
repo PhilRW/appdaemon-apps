@@ -36,20 +36,20 @@ wake_up_color:
       color_name: blue
     - name: Snowy day
       type: eval
-      eval: self.entities.weather.dark_sky.attributes.forecast[0]["condition"]
+      eval: self.entities.weather.openweathermap.attributes.forecast[0]["condition"]
       values:
         - snowy
       color_name: snow
     - name: Rainy day
       type: eval
-      eval: self.entities.weather.dark_sky.attributes.forecast[0]["condition"]
+      eval: self.entities.weather.openweathermap.attributes.forecast[0]["condition"]
       values:
         - rainy
         - snowy-rainy
       color_name: slateblue
     - name: Stormy day
       type: eval
-      eval: self.entities.weather.dark_sky.attributes.forecast[0]["condition"]
+      eval: self.entities.weather.openweathermap.attributes.forecast[0]["condition"]
       values:
         - hail
         - lightning
