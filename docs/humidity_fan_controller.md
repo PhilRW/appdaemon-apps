@@ -10,7 +10,7 @@ Here is a sample `app.yaml` configuration:
 bathroom_humidity_fan:
   module: FanController
   class: HumidityFan
-  constrain_input_boolean: switch.manual_override,off
+  constrain_input_boolean: input_boolean.manual_override,off
   exhaust_fan: switch.bathroom_exhaust_fan
   humidity_sensor: sensor.bathroom_humidity
   motion_sensor: binary_sensor.bathroom_motion
