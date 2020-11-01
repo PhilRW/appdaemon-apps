@@ -16,6 +16,7 @@ superior_lametric_hem:
   lametric_access_token: [redacted]
   power_meter: sensor.whole_house_power
   energy_meter: sensor.whole_house_energy
+  rate: sensor.electric_meter,rate
   energy_offset: 1234.567
   dependencies: tou_mode_manager
   tou_mode: input_select.tou_mode
@@ -24,6 +25,8 @@ superior_lametric_hem:
 `energy_offset` will add that value to the meter's energy (kWh) reading. This is in case you reset the meter on the device, inadvertently or otherwise, and would like to restore your previous reading.
 
 `dependencies` and `tou_mode` are optional and depend on the separate `tou` module.
+
+`rate` is optional (use a comma if you want to specify an attribute) and will load if `power_meter` is specified.
 
 ## Known issues
 

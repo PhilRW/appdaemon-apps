@@ -66,6 +66,7 @@ class EnergyApp(hass.Hass):
         self.frame_energy = None
         self.frame_chart = None
         self.frame_tou = None
+        self.frame_cost = None
 
         if "lametric_app_id" and "lametric_access_token" in self.args:
             if "power_meter" in self.args:
@@ -114,6 +115,17 @@ class EnergyApp(hass.Hass):
             },
             "icon": icon_sel
         }
+
+        if 'rate' in self.args:
+            if ',' in self.args['rate']:
+                split = self.args['rate'].split(',')
+                rate = float(self.get_state(split[0], attribute=split[1]))
+            else:
+                rate = float(self.get_state(self.args['rate']))
+            cost = rate * w / 1000
+            self.frame_cost = {
+                "text": "${:0.2f}/hr".format(cost)
+            }
 
         if self.handle is not None:
             self.log("cancelling timer", level=EnergyApp.DEBUG_LEVEL)
@@ -170,6 +182,7 @@ class EnergyApp(hass.Hass):
 
         frames = []
         if self.frame_power: frames.append(self.frame_power)
+        if self.frame_cost: frames.append(self.frame_cost)
         if self.frame_energy: frames.append(self.frame_energy)
         if self.frame_chart: frames.append(self.frame_chart)
         if self.frame_tou: frames.append(self.frame_tou)
@@ -185,16 +198,16 @@ class EnergyApp(hass.Hass):
         self.build_frames()
 
         self.log("Sending updated data to LaMetric...", level=EnergyApp.DEBUG_LEVEL)
-        url = "https://developer.lametric.com/api/v1/dev/widget/update/com.lametric.{0}/1".format(self.app_id)
+        url = f"https://developer.lametric.com/api/v1/dev/widget/update/com.lametric.{self.app_id}/1"
         headers = {"X-Access-Token": self.access_token}
         try:
             result = requests.post(url, json.dumps(self.frames), headers=headers, timeout=5)
-            self.log("status_code: {0}, reason: {1}".format(result.status_code, result.reason), level=EnergyApp.DEBUG_LEVEL)
+            self.log(f"status_code: {result.status_code}, reason: {result.reason}", level=EnergyApp.DEBUG_LEVEL)
 
             if result.status_code != 200:
-                self.log("Problem sending to LaMetric: status_code: {0}, reason: {1}".format(result.status_code, result.reason), level="ERROR")
+                self.log(f"Problem sending to LaMetric: status_code: {result.status_code}, reason: {result.reason}", level="ERROR")
         except requests.exceptions.ConnectionError as e:
-            self.log("Problem connecting to LaMetric: {0}".format(e), level="ERROR")
+            self.log(f"Problem connecting to LaMetric: {e}", level="ERROR")
             self.handle = self.run_in(self.update, 5)
 
         self.handle = None
@@ -255,7 +268,7 @@ class TaskApp(hass.Hass):
                 self.log(f"parsed dt: {dt}, now: {datetime.datetime.now(tz)}", level=TaskApp.DEBUG_LEVEL)
 
                 if dt < datetime.datetime.now(tz):
-                    self.log("adding task to task list: {0}".format(task['content']), level=TaskApp.DEBUG_LEVEL)
+                    self.log(f"adding task to task list: {task['content']}", level=TaskApp.DEBUG_LEVEL)
                     tasks.append(task['content'])
 
         return tasks
@@ -264,7 +277,7 @@ class TaskApp(hass.Hass):
         self.log("build_frames()", level=TaskApp.DEBUG_LEVEL)
 
         tasks = self.get_tasks()
-        self.log("tasks: {0}".format(tasks), level=TaskApp.DEBUG_LEVEL)
+        self.log(f"tasks: {tasks}", level=TaskApp.DEBUG_LEVEL)
 
         i = 0
 
@@ -292,10 +305,10 @@ class TaskApp(hass.Hass):
             "frames": frames
         }
 
-        self.log("frames: {0}".format(frames), level=TaskApp.DEBUG_LEVEL)
+        self.log(f"frames: {frames}", level=TaskApp.DEBUG_LEVEL)
 
     def update(self, kwargs):
-        self.log("update({0})".format(kwargs), level=TaskApp.DEBUG_LEVEL)
+        self.log(f"update({kwargs})", level=TaskApp.DEBUG_LEVEL)
 
         self.build_frames()
 
@@ -303,18 +316,18 @@ class TaskApp(hass.Hass):
 
         host = "developer.lametric.com"
         if "device_ip" in self.args:
-            host = "{0}:4343".format(self.args["device_ip"])
+            host = f"{self.args['device_ip']}:4343"
 
-        url = "https://{0}/api/v1/dev/widget/update/com.lametric.{1}/1".format(host, self.app_id)
+        url = f"https://{host}/api/v1/dev/widget/update/com.lametric.{self.app_id}/1"
         headers = {"X-Access-Token": self.lametric_token}
         try:
             result = requests.post(url, json.dumps(self.frames), headers=headers, verify=("device_ip" not in self.args))
-            self.log("status_code: {0}, reason: {1}".format(result.status_code, result.reason), level=TaskApp.DEBUG_LEVEL)
+            self.log(f"status_code: {result.status_code}, reason: {result.reason}", level=TaskApp.DEBUG_LEVEL)
 
             if result.status_code != 200:
-                self.log("Problem sending to LaMetric: status_code: {0}, reason: {1}".format(result.status_code, result.reason), level="ERROR")
+                self.log(f"Problem sending to LaMetric: status_code: {result.status_code}, reason: {result.reason}", level="ERROR")
         except requests.exceptions.ConnectionError as e:
-            self.log("Problem connecting to LaMetric: {0}".format(e), level="ERROR")
+            self.log(f"Problem connecting to LaMetric: {e}", level="ERROR")
             self.handle = self.run_in(self.update, 55)
 
         self.handle = None

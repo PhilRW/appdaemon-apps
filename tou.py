@@ -13,20 +13,20 @@ ON_PEAK = 'on-peak'
 SHOULDER = 'shoulder'
 OFF_PEAK = 'off-peak'
 
-PCCA = 0.00401
-DSMCA = 0.00159
-TCA = 0.00203
-CACJA = 0.00301
+# PCCA = 0.00401
+# DSMCA = 0.00159
+# TCA = 0.00203
+# CACJA = 0.00301
 
-ECA_ON_PEAK = 0.04170
-ECA_OFF_PEAK = 0.02574
+# ECA_ON_PEAK = 0.04170
+# ECA_OFF_PEAK = 0.02574
 
-RATE_SUMMER_ON_PEAK = 0.13814
-RATE_SUMMER_SHOULDER = 0.08420
-RATE_SUMMER_OFF_PEAK = 0.04440
-RATE_WINTER_ON_PEAK = 0.08880
-RATE_WINTER_SHOULDER = 0.05431
-RATE_WINTER_OFF_PEAK = 0.04440
+RATE_SUMMER_ON_PEAK = 0.18527
+RATE_SUMMER_SHOULDER = 0.13025
+RATE_SUMMER_OFF_PEAK = 0.08018
+RATE_WINTER_ON_PEAK = 0.19178
+RATE_WINTER_SHOULDER = 0.13676
+RATE_WINTER_OFF_PEAK = 0.08458
 
 
 class Holiday(object):
@@ -128,10 +128,10 @@ class StateManagerXcelColorado(hass.Hass):
         self.log("get_rate({0})".format(tou_mode), level="DEBUG")
 
         rate = 0.00
-        eca = ECA_OFF_PEAK
+        # eca = ECA_OFF_PEAK
 
         if tou_mode == ON_PEAK:
-            eca = ECA_ON_PEAK
+            # eca = ECA_ON_PEAK
             if datetime.datetime.now().month in SUMMER_MONTHS:
                 rate = RATE_SUMMER_ON_PEAK
             else:
@@ -147,4 +147,5 @@ class StateManagerXcelColorado(hass.Hass):
             else:
                 rate = RATE_WINTER_OFF_PEAK
 
-        return rate + eca + PCCA + DSMCA + TCA + CACJA
+        # return rate + eca + PCCA + DSMCA + TCA + CACJA
+        return rate
