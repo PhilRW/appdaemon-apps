@@ -1,12 +1,12 @@
-import calendar
 import datetime
 
 import appdaemon.plugins.hass.hassapi as hass
+import calendar
 
-PEAK_START_HOUR = 14
-PEAK_END_HOUR = 18
-SHOULDER_START_HOUR = 9
-SHOULDER_END_HOUR = 21
+SHOULDER_START_HOUR = 13
+PEAK_START_HOUR = 15
+PEAK_END_HOUR = 19
+# SHOULDER_END_HOUR = 21
 
 SUMMER_MONTHS = [6, 7, 8, 9]
 ON_PEAK = 'on-peak'
@@ -100,17 +100,16 @@ class StateManagerXcelColorado(hass.Hass):
         self.log("update_state({0})".format(kwargs), level="DEBUG")
 
         now = datetime.datetime.now()
-        if PEAK_END_HOUR > now.hour >= PEAK_START_HOUR \
-                and now.weekday() not in [5, 6] \
+        tou_mode = OFF_PEAK
+        lametric_icon = "a11218"
+        if now.weekday() not in [5, 6] \
                 and not self.is_holiday(now):
-            tou_mode = ON_PEAK
-            lametric_icon = "a11217"
-        elif SHOULDER_END_HOUR > now.hour >= SHOULDER_START_HOUR:
-            tou_mode = SHOULDER
-            lametric_icon = "a11219"
-        else:
-            tou_mode = OFF_PEAK
-            lametric_icon = "a11218"
+            if PEAK_END_HOUR > now.hour >= PEAK_START_HOUR:
+                tou_mode = ON_PEAK
+                lametric_icon = "a11217"
+            elif PEAK_START_HOUR > now.hour >= SHOULDER_START_HOUR:
+                tou_mode = SHOULDER
+                lametric_icon = "a11219"
 
         attributes = {
             "lametric_icon": lametric_icon,
